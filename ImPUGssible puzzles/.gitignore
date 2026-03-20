@@ -33,6 +33,8 @@
 
 # Visual Studio cache directory
 .vs/
+.idea/
+.vscode/
 
 # Gradle cache directory
 .gradle/
@@ -71,38 +73,6 @@ mono_crash.*
 *.aab
 *.app
 *.dae
-*.fbx
-*.FBX
-*.mat
-*.mat.meta
-*.fbx.meta
-*.mp4
-*.png
-*.meta
-*.jpg
-*.gif
-*.prefab
-*.psd
-*.pdf
-*.mtl
-*.obj
-*.anim
-*.cs
-*.exr
-*.mp3
-*.asset
-*.shader
-*.tga
-*.txt
-*.resS
-*.controller
-*.ttf
-*.wav
-*.lighting
-*.giparams
-*.json
-*.wlt
-*.config
 
 # Crashlytics generated file
 crashlytics-build.properties

@@ -1,7 +1,2 @@
-*.ini
-*.map
-*.resS
-*.dll
-*.aspx
-*.config
 *.assets
+*.resS
