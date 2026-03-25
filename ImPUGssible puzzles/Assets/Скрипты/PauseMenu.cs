@@ -1,193 +1,148 @@
 ﻿using UnityEngine;
+using TMPro;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
+using System.Collections;
 
-public class PauseMenu : MonoBehaviour
+[System.Serializable]
+public class TutorialControl
 {
-    [Header("Menus")]
-    public CanvasGroup pauseMenu;
-    public CanvasGroup optionsMenu;
+    public KeyCode key;
+    public string description;
+}
 
-    [Header("Blur")]
-    public Volume blurVolume;
+public class TutorialSystem : MonoBehaviour
+{
+    public CanvasGroup panel;
+    public TextMeshProUGUI textUI;
 
-    [Header("Settings")]
-    public Slider volumeSlider;
-    public Slider brightnessSlider;
-    public Slider sensitivitySlider;
+    public Transform controlsContainer;
+    public GameObject controlIconPrefab;
 
-    public Управлениемопсом playerController;
+    public Button continueButton;
 
-    [Header("Animation")]
-    public float fadeSpeed = 5f;
+    public MonoBehaviour playerController;
 
-    private bool isPaused = false;
-    public GameObject gameplayUI;
+    public float letterSpeed = 0.03f;
+    public float fadeSpeed = 2f;
 
-    void Update()
+    void Start()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        panel.alpha = 0;
+        panel.interactable = false;
+        panel.blocksRaycasts = false;
+
+        continueButton.gameObject.SetActive(false);
+
+        LockPlayer();
+
+        TutorialControl[] controls =
         {
-            if (isPaused)
-            {
-                Resume(); // Полный выход из паузы
-            }
-            else
-            {
-                Pause();
-            }
-        }
+            new TutorialControl{ key = KeyCode.W, description = "Идти вперёд"},
+            new TutorialControl{ key = KeyCode.A, description = "Идти влево"},
+            new TutorialControl{ key = KeyCode.S, description = "Идти назад"},
+            new TutorialControl{ key = KeyCode.D, description = "Идти вправо"},
+            new TutorialControl{ key = KeyCode.E, description = "Поднять предмет"}
+        };
+
+        ShowTutorial(
+            "Осмотритесь вокруг и попробуйте двигаться.",
+            controls
+        );
     }
 
-    void OnEnable()
+    void LockPlayer()
     {
-        if (volumeSlider != null)
-        {
-            volumeSlider.onValueChanged.RemoveAllListeners();
-            volumeSlider.onValueChanged.AddListener(SetVolume);
-        }
-
-        if (brightnessSlider != null)
-        {
-            brightnessSlider.onValueChanged.RemoveAllListeners();
-            brightnessSlider.onValueChanged.AddListener(SetBrightness);
-        }
-
-        if (sensitivitySlider != null && playerController != null)
-        {
-            sensitivitySlider.onValueChanged.RemoveAllListeners();
-            sensitivitySlider.onValueChanged.AddListener(SetSensitivity);
-
-            // Синхронизируем ползунок с текущей сенситивити
-            sensitivitySlider.value = playerController.mouseSensitivity;
-        }
-    }
-
-    public void Pause()
-    {
-        if (gameplayUI != null)
-            gameplayUI.SetActive(false);
-
         if (playerController != null)
-            playerController.SetUIActive(false);
-
-        Time.timeScale = 0f;
-        isPaused = true;
+            playerController.enabled = false;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        StartCoroutine(FadeIn(pauseMenu));
-        StartCoroutine(BlurIn());
     }
 
-    public void Resume()
+    void UnlockPlayer()
     {
-        if (gameplayUI != null)
-            gameplayUI.SetActive(true);
-
         if (playerController != null)
-            playerController.SetUIActive(true);
-
-        Time.timeScale = 1f;
-        isPaused = false;
+            playerController.enabled = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
-        StartCoroutine(FadeOut(pauseMenu));
-        StartCoroutine(FadeOut(optionsMenu));
-        StartCoroutine(BlurOut());
     }
 
-    public void OpenOptions()
+    public void ShowTutorial(string text, TutorialControl[] controls)
     {
-        StartCoroutine(SwitchMenu(pauseMenu, optionsMenu));
+        StartCoroutine(TutorialRoutine(text, controls));
     }
 
-    public void CloseOptions()
+    IEnumerator TutorialRoutine(string text, TutorialControl[] controls)
     {
-        StartCoroutine(SwitchMenu(optionsMenu, pauseMenu));
+        panel.interactable = true;
+        panel.blocksRaycasts = true;
+
+        yield return Fade(0, 1);
+
+        SpawnControls(controls);
+
+        yield return TypeText(text);
+
+        continueButton.gameObject.SetActive(true);
     }
 
-    public void LoadMainMenu()
+    void SpawnControls(TutorialControl[] controls)
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
-    }
+        foreach (Transform c in controlsContainer)
+            Destroy(c.gameObject);
 
-    // SETTINGS
-    void SetVolume(float v) => AudioListener.volume = v;
-
-    void SetBrightness(float v) => SettingsManager.Instance.SetBrightness(v);
-
-    void SetSensitivity(float v)
-    {
-        if (playerController != null)
-            playerController.mouseSensitivity = v;
-    }
-
-    // ANIMATION
-    System.Collections.IEnumerator FadeIn(CanvasGroup cg)
-    {
-        cg.gameObject.SetActive(true);
-
-        while (cg.alpha < 1)
+        foreach (TutorialControl control in controls)
         {
-            cg.alpha += Time.unscaledDeltaTime * fadeSpeed;
+            GameObject icon = Instantiate(controlIconPrefab, controlsContainer);
+
+            TextMeshProUGUI[] texts =
+                icon.GetComponentsInChildren<TextMeshProUGUI>();
+
+            texts[0].text = control.key.ToString();
+            texts[1].text = control.description;
+        }
+    }
+
+    IEnumerator TypeText(string text)
+    {
+        textUI.text = "";
+
+        foreach (char c in text)
+        {
+            textUI.text += c;
+            yield return new WaitForSeconds(letterSpeed);
+        }
+    }
+
+    IEnumerator Fade(float start, float end)
+    {
+        float t = 0;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeSpeed;
+
+            panel.alpha = Mathf.Lerp(start, end, t);
+
             yield return null;
         }
-
-        cg.alpha = 1;
-        cg.interactable = true;
-        cg.blocksRaycasts = true;
     }
 
-    System.Collections.IEnumerator FadeOut(CanvasGroup cg)
+    public void Continue()
     {
-        cg.interactable = false;
-        cg.blocksRaycasts = false;
-
-        while (cg.alpha > 0)
-        {
-            cg.alpha -= Time.unscaledDeltaTime * fadeSpeed;
-            yield return null;
-        }
-
-        cg.alpha = 0;
-        cg.gameObject.SetActive(false);
+        StartCoroutine(Hide());
     }
 
-    System.Collections.IEnumerator SwitchMenu(CanvasGroup from, CanvasGroup to)
+    IEnumerator Hide()
     {
-        yield return FadeOut(from);
-        yield return FadeIn(to);
-    }
+        continueButton.gameObject.SetActive(false);
 
-    System.Collections.IEnumerator BlurIn()
-    {
-        if (blurVolume == null) yield break;
+        yield return Fade(1, 0);
 
-        while (blurVolume.weight < 1)
-        {
-            blurVolume.weight += Time.unscaledDeltaTime * fadeSpeed;
-            yield return null;
-        }
+        panel.interactable = false;
+        panel.blocksRaycasts = false;
 
-        blurVolume.weight = 1;
-    }
-
-    System.Collections.IEnumerator BlurOut()
-    {
-        if (blurVolume == null) yield break;
-
-        while (blurVolume.weight > 0)
-        {
-            blurVolume.weight -= Time.unscaledDeltaTime * fadeSpeed;
-            yield return null;
-        }
-
-        blurVolume.weight = 0;
+        UnlockPlayer();
     }
 }
