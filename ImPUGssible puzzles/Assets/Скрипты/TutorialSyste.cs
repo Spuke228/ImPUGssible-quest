@@ -5,6 +5,9 @@ using System.Collections;
 
 public class TutorialSyste : MonoBehaviour
 {
+    public TextMeshProUGUI mouseControlsDescription;
+    public static bool TutorialActive = true;
+
     public CanvasGroup panel;
     public Image panelImage;
 
@@ -34,6 +37,8 @@ public class TutorialSyste : MonoBehaviour
 
     void Start()
     {
+        TutorialActive = true;
+
         panel.alpha = 0;
         panel.interactable = false;
         panel.blocksRaycasts = false;
@@ -89,6 +94,8 @@ public class TutorialSyste : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        TutorialActive = false;
     }
 
     public void ShowTutorial(string text, KeyCode[] keys)
@@ -102,7 +109,6 @@ public class TutorialSyste : MonoBehaviour
         panel.blocksRaycasts = true;
 
         yield return Fade(0, 1, 0.5f);
-
         yield return TypeText(text);
 
         SpawnIcons(keys);
@@ -117,8 +123,6 @@ public class TutorialSyste : MonoBehaviour
     {
         foreach (Transform c in controlsContainer)
             Destroy(c.gameObject);
-
-        GameObject mouseText = null;
 
         for (int i = 0; i < keys.Length; i++)
         {
@@ -167,40 +171,24 @@ public class TutorialSyste : MonoBehaviour
 
                 case KeyCode.Mouse0:
                     img.sprite = mouseMoveHorizontal;
-                    pos = new Vector2(500, 0); // поменял на уникальную позицию
-                    if (txt != null)
-                        txt.gameObject.SetActive(false);
+                    pos = new Vector2(500, 0);
+                    if (mouseControlsDescription != null)
+                        mouseControlsDescription.text = "Двигайте мышью, чтобы\nуправлять камерой";
                     StartCoroutine(MouseLeftRight(icon, pos));
                     break;
 
                 case KeyCode.Mouse1:
                     img.sprite = mouseMoveVertical;
-                    pos = new Vector2(300, 0); // другая уникальная позиция
-                    if (txt != null)
-                        txt.gameObject.SetActive(false);
+                    pos = new Vector2(300, 0);
+                    if (mouseControlsDescription != null)
+                        mouseControlsDescription.text = "Двигайте мышью, чтобы\nуправлять камерой"; // та же подпись
                     StartCoroutine(MouseUpDown(icon, pos));
-
-                    if (mouseText == null)
-                    {
-                        GameObject textObj = Instantiate(controlIconPrefab, controlsContainer);
-                        RectTransform tr = textObj.GetComponent<RectTransform>();
-                        Image im = textObj.GetComponent<Image>();
-                        TextMeshProUGUI t = textObj.GetComponentInChildren<TextMeshProUGUI>();
-
-                        Destroy(im);
-
-                        tr.anchoredPosition = new Vector2(400, -50);
-                        t.text = "Двигайте мышью\nчтобы вращать камеру";
-
-                        mouseText = textObj;
-                    }
                     break;
 
                 case KeyCode.Mouse2:
                     img.sprite = mouseWheel;
                     pos = new Vector2(700, -200);
                     description = "Колёсико мыши\nприближает и отдаляет камеру";
-
                     StartCoroutine(MouseWheelAnimation(icon));
                     break;
             }
@@ -257,16 +245,12 @@ public class TutorialSyste : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         float t = 0f;
-        float duration = 0.25f;
 
-        while (t < duration)
+        while (t < 0.25f)
         {
             t += Time.deltaTime;
-
-            float scale = Mathf.SmoothStep(0, 1, t / duration);
-
+            float scale = Mathf.SmoothStep(0, 1, t / 0.25f);
             icon.transform.localScale = new Vector3(scale, scale, scale);
-
             yield return null;
         }
 
@@ -286,6 +270,7 @@ public class TutorialSyste : MonoBehaviour
     IEnumerator MouseLeftRight(GameObject icon, Vector2 basePos)
     {
         RectTransform rt = icon.GetComponent<RectTransform>();
+
         while (true)
         {
             float offset = Mathf.Sin(Time.time * 2f) * 10f;
@@ -297,6 +282,7 @@ public class TutorialSyste : MonoBehaviour
     IEnumerator MouseUpDown(GameObject icon, Vector2 basePos)
     {
         RectTransform rt = icon.GetComponent<RectTransform>();
+
         while (true)
         {
             float offset = Mathf.Sin(Time.time * 2f) * 10f;

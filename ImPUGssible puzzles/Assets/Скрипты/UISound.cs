@@ -93,8 +93,20 @@ public class UISoundManager : MonoBehaviour
         while (t2 < musicFadeDuration)
         {
             t2 += Time.unscaledDeltaTime;
-            musicAudioSource.volume = Mathf.Lerp(0f, 1f, t2 / musicFadeDuration);
+            musicAudioSource.volume = Mathf.Lerp(0f, 0.2f, t2 / musicFadeDuration);
             yield return null;
         }
+    }
+
+    public void SetMusicVolume(float volume)
+    {
+        if (musicAudioSource != null)
+            musicAudioSource.volume = volume;
+    }
+
+    public void SetMusicVolumeSlider(float volume)
+    {
+        if (musicAudioSource != null)
+            musicAudioSource.volume = volume;
     }
 }
