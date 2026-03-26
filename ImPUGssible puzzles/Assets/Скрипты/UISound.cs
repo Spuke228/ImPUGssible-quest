@@ -1,31 +1,54 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class UISoundManager : MonoBehaviour
 {
+    [Header("UI звуки")]
     public AudioClip clickSound;
-    private AudioSource audioSource;
+
+    [Header("Музыка сцены")]
+    public AudioClip sceneMusic;
+    public float musicFadeDuration = 1f;
+
+    private AudioSource uiAudioSource;
+    private AudioSource musicAudioSource;
 
     private void Awake()
     {
-        audioSource = gameObject.AddComponent<AudioSource>();
-        audioSource.playOnAwake = false;
+        uiAudioSource = gameObject.AddComponent<AudioSource>();
+        uiAudioSource.playOnAwake = false;
+
+        musicAudioSource = gameObject.AddComponent<AudioSource>();
+        musicAudioSource.loop = true;
+        musicAudioSource.playOnAwake = false;
     }
 
-    // Привязать к OnClick() всех кнопок
+    private void Start()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        StartCoroutine(SwitchMusic(sceneMusic));
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(SwitchMusic(sceneMusic));
+    }
+
+    // ---------------- UI ----------------
+
     public void PlayClickSound()
     {
         if (clickSound != null)
-            audioSource.PlayOneShot(clickSound);
+            uiAudioSource.PlayOneShot(clickSound);
     }
 
-    // Для слайдера: подключаем динамически
     public void RegisterSlider(Slider slider)
     {
         if (slider == null) return;
 
-        // Воспроизводим звук при начале перетаскивания
         EventTrigger trigger = slider.gameObject.GetComponent<EventTrigger>();
         if (trigger == null)
             trigger = slider.gameObject.AddComponent<EventTrigger>();
@@ -34,7 +57,44 @@ public class UISoundManager : MonoBehaviour
         {
             eventID = EventTriggerType.PointerDown
         };
+
         entry.callback.AddListener((data) => { PlayClickSound(); });
         trigger.triggers.Add(entry);
+    }
+
+    // ---------------- Музыка ----------------
+
+    IEnumerator SwitchMusic(AudioClip newMusic)
+    {
+        if (newMusic == null)
+            yield break;
+
+        if (musicAudioSource.isPlaying)
+        {
+            float startVolume = musicAudioSource.volume;
+            float t = 0f;
+
+            while (t < musicFadeDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                musicAudioSource.volume = Mathf.Lerp(startVolume, 0f, t / musicFadeDuration);
+                yield return null;
+            }
+
+            musicAudioSource.Stop();
+        }
+
+        musicAudioSource.clip = newMusic;
+        musicAudioSource.volume = 0f;
+        musicAudioSource.Play();
+
+        float t2 = 0f;
+
+        while (t2 < musicFadeDuration)
+        {
+            t2 += Time.unscaledDeltaTime;
+            musicAudioSource.volume = Mathf.Lerp(0f, 1f, t2 / musicFadeDuration);
+            yield return null;
+        }
     }
 }
