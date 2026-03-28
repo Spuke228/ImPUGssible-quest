@@ -3707,6 +3707,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISound
   clickSound: {fileID: 8300000, guid: 1baa92317c1e2b745ba6a43050fe0e6b, type: 3}
+  sceneMusic: {fileID: 8300000, guid: 9c28181d94c610e4f94f8463d4c4301b, type: 3}
+  musicFadeDuration: 1
 --- !u!4 &1291322200
 Transform:
   m_ObjectHideFlags: 0
