@@ -1,14 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.EventSystems;
-using System.Collections;
+using
+UnityEngine.EventSystems;
 using System.Collections.Generic;
+
+// // COMPUTER OS MAIN SYSTEM // Attach to Canvas //
 
 public class ComputerOS : MonoBehaviour
 {
-    [Header("Player")]
-    public Управлениемопсом pugController;
+    [Header(“Player”)]
+    public
+MonoBehaviour playerController; public MonoBehaviour cameraController;
     public Transform player;
 
     [Header("Computer")]
@@ -16,396 +19,352 @@ public class ComputerOS : MonoBehaviour
     public float interactDistance = 3f;
 
     [Header("Icons")]
-    public Sprite galleryIcon;
+    public Sprite minesIcon;
     public Sprite browserIcon;
-    public Sprite robloxIcon;
-    public Sprite dotaIcon;
-    public Sprite minesweeperIcon;
+    public Sprite galleryIcon;
 
-    private Canvas computerCanvas;
-    private RectTransform desktop;
-    private RectTransform taskbar;
-    private bool open;
+    Canvas canvas;
+    RectTransform desktop;
+    RectTransform taskbar;
 
-    private Dictionary<string, Window> windows = new();
-    private float doubleClickTime = 0.25f;
-    private Dictionary<GameObject, float> lastClick = new();
+    Dictionary<string, GameObject> windows = new Dictionary<string, GameObject>();
 
-    private GameObject notification;
-    private TMP_Text notificationText;
-
-    private List<MonoBehaviour> disabledScripts = new List<MonoBehaviour>();
-    private List<GameObject> disabledUIs = new List<GameObject>();
+    bool opened;
 
     void Start()
     {
-        CreateCanvas();      // отдельный Canvas
+        canvas = GetComponent<Canvas>();
         BuildDesktop();
-        BuildNotification();
-        BuildIcons();
-        BuildWindows();
-        AddDesktopCloseButton();
-
-        desktop.gameObject.SetActive(false);
     }
 
     void Update()
     {
-        if (!monitor || !player) return;
-
-        if (Vector3.Distance(player.position, monitor.position) < interactDistance && Input.GetKeyDown(KeyCode.E))
+        if (!opened)
         {
-            if (!open) OpenComputer();
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (Vector3.Distance(player.position, monitor.position) < interactDistance)
+                {
+                    OpenComputer();
+                }
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                CloseComputer();
+            }
         }
     }
 
     void OpenComputer()
     {
-        open = true;
-        desktop.gameObject.SetActive(true);
+        opened = true;
 
-        // Отключаем скрипты игрока и паузу
-        disabledScripts.Clear();
-        foreach (MonoBehaviour mb in FindObjectsOfType<MonoBehaviour>())
-        {
-            if (mb != this && mb.enabled &&
-                (mb.GetType() == typeof(Управлениемопсом) || mb.GetType().Name == "PauseMenu" || mb.GetType().Name == "BaldiLikeQuiz"))
-            {
-                mb.enabled = false;
-                disabledScripts.Add(mb);
-            }
-        }
-
-        // Скрываем все UI мопса
-        disabledUIs.Clear();
-        foreach (Image img in FindObjectsOfType<Image>())
-        {
-            if (!img.transform.IsChildOf(computerCanvas.transform) && img.enabled)
-            {
-                img.enabled = false;
-                disabledUIs.Add(img.gameObject);
-            }
-        }
-        foreach (TMP_Text t in FindObjectsOfType<TMP_Text>())
-        {
-            if (!t.transform.IsChildOf(computerCanvas.transform) && t.enabled)
-            {
-                t.enabled = false;
-                disabledUIs.Add(t.gameObject);
-            }
-        }
+        if (playerController) playerController.enabled = false;
+        if (cameraController) cameraController.enabled = false;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        Time.timeScale = 0f;
+
+        desktop.gameObject.SetActive(true);
+        taskbar.gameObject.SetActive(true);
     }
 
     void CloseComputer()
     {
-        open = false;
-        desktop.gameObject.SetActive(false);
+        opened = false;
 
-        foreach (MonoBehaviour mb in disabledScripts) if (mb != null) mb.enabled = true;
-        disabledScripts.Clear();
-
-        foreach (GameObject go in disabledUIs) if (go != null) go.SetActive(true);
-        disabledUIs.Clear();
+        if (playerController) playerController.enabled = true;
+        if (cameraController) cameraController.enabled = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        Time.timeScale = 1f;
-    }
 
-    void CreateCanvas()
-    {
-        GameObject canvasGO = new GameObject("ComputerCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        computerCanvas = canvasGO.GetComponent<Canvas>();
-        computerCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        computerCanvas.overrideSorting = true;
-        computerCanvas.sortingOrder = 1000;
-
-        CanvasScaler cs = canvasGO.GetComponent<CanvasScaler>();
-        cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        cs.referenceResolution = new Vector2(1920, 1080);
-        cs.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        cs.matchWidthOrHeight = 0.5f;
+        desktop.gameObject.SetActive(false);
+        taskbar.gameObject.SetActive(false);
     }
 
     void BuildDesktop()
     {
-        desktop = CreatePanel("Desktop", computerCanvas.transform, new Color(.07f, .08f, .12f));
+        desktop = CreatePanel("Desktop", transform, new Color(.1f, .45f, .8f));
         desktop.anchorMin = Vector2.zero;
         desktop.anchorMax = Vector2.one;
-        desktop.offsetMin = Vector2.zero;
-        desktop.offsetMax = Vector2.zero;
+        desktop.gameObject.SetActive(false);
 
-        taskbar = CreatePanel("Taskbar", desktop, new Color(.1f, .1f, .1f));
+        taskbar = CreatePanel("Taskbar", transform, new Color(.1f, .1f, .1f));
         taskbar.anchorMin = new Vector2(0, 0);
-        taskbar.anchorMax = new Vector2(1, 0);
-        taskbar.pivot = new Vector2(0.5f, 0);
-        taskbar.sizeDelta = new Vector2(0, 80);
-    }
+        taskbar.anchorMax = new Vector2(1, .07f);
+        taskbar.gameObject.SetActive(false);
 
-    void BuildIcons()
-    {
-        string[] names = { "Gallery", "Browser", "Roblox", "Dota", "Minesweeper" };
-        Sprite[] icons = { galleryIcon, browserIcon, robloxIcon, dotaIcon, minesweeperIcon };
-
-        for (int i = 0; i < icons.Length; i++)
-        {
-            CreateIcon(names[i], icons[i]);
-        }
-
-        ArrangeIcons(); // авто-выравнивание
-    }
-
-    void CreateIcon(string name, Sprite icon)
-    {
-        GameObject g = new GameObject(name);
-        g.transform.SetParent(desktop, false);
-
-        Image img = g.AddComponent<Image>();
-        img.sprite = icon;
-        img.color = Color.white;
-
-        Button b = g.AddComponent<Button>();
-        RectTransform r = g.GetComponent<RectTransform>();
-        r.sizeDelta = new Vector2(100, 100);
-
-        TMP_Text label = CreateText(g.transform, name);
-        label.alignment = TextAlignmentOptions.Center;
-        RectTransform tr = label.rectTransform;
-        tr.pivot = new Vector2(0.5f, 1);
-        tr.anchorMin = new Vector2(0.5f, 0);
-        tr.anchorMax = new Vector2(0.5f, 0);
-        tr.anchoredPosition = new Vector2(0, -10);
-
-        DragWindow dw = g.AddComponent<DragWindow>();
-        dw.Init(true, this);
-
-        b.onClick.AddListener(() => HandleClick(g, name));
-    }
-
-    void ArrangeIcons()
-    {
-        int columns = 4;
-        float xSpacing = 140f;
-        float ySpacing = 160f;
-        Vector2 startPos = new Vector2(20, -20);
-
-        int idx = 0;
-        foreach (Transform child in desktop)
-        {
-            if (child == taskbar || child == notification.transform) continue;
-            int row = idx / columns;
-            int col = idx % columns;
-            RectTransform r = child.GetComponent<RectTransform>();
-            r.anchoredPosition = new Vector2(startPos.x + col * xSpacing, startPos.y - row * ySpacing);
-            idx++;
-        }
-    }
-
-    void BuildWindows()
-    {
-        CreateWindow("Gallery", BuildGallery);
-        CreateWindow("Browser", BuildBrowser);
-        CreateWindow("Roblox", BuildRoblox);
-        CreateWindow("Dota", BuildDota);
-        CreateWindow("Minesweeper", BuildMinesweeper);
-    }
-
-    void AddDesktopCloseButton()
-    {
-        GameObject close = CreateButton("CloseDesktop", desktop, new Vector2(40, 40), CloseComputer);
-        RectTransform dcr = close.GetComponent<RectTransform>();
-        dcr.anchorMin = new Vector2(1, 1);
-        dcr.anchorMax = new Vector2(1, 1);
-        dcr.pivot = new Vector2(1, 1);
-        dcr.anchoredPosition = new Vector2(-10, -10);
-        close.GetComponent<Image>().color = Color.red;
+        CreateIcon("Minesweeper", minesIcon, new Vector2(90, -90));
+        CreateIcon("Browser", browserIcon, new Vector2(90, -200));
+        CreateIcon("Gallery", galleryIcon, new Vector2(90, -310));
     }
 
     RectTransform CreatePanel(string name, Transform parent, Color color)
     {
         GameObject g = new GameObject(name);
         g.transform.SetParent(parent, false);
+
         Image img = g.AddComponent<Image>();
         img.color = color;
+
         RectTransform r = g.GetComponent<RectTransform>();
-        r.localScale = Vector3.one;
-        r.offsetMin = Vector2.zero;
-        r.offsetMax = Vector2.zero;
+        r.anchorMin = Vector2.zero;
+        r.anchorMax = Vector2.one;
+
         return r;
     }
 
-    TMP_Text CreateText(Transform parent, string text)
-    {
-        GameObject g = new GameObject("Text");
-        g.transform.SetParent(parent, false);
-        TMP_Text t = g.AddComponent<TextMeshProUGUI>();
-        t.text = text;
-        t.fontSize = 24;
-        t.color = Color.white;
-        RectTransform r = t.rectTransform;
-        r.anchorMin = Vector2.zero;
-        r.anchorMax = Vector2.one;
-        r.offsetMin = Vector2.zero;
-        r.offsetMax = Vector2.zero;
-        return t;
-    }
-
-    GameObject CreateButton(string name, Transform parent, Vector2 size, System.Action onClick)
+    void CreateIcon(string name, Sprite icon, Vector2 pos)
     {
         GameObject g = new GameObject(name);
+        g.transform.SetParent(desktop, false);
+
+        Image img = g.AddComponent<Image>();
+        img.sprite = icon;
+
+        RectTransform r = g.GetComponent<RectTransform>();
+        r.sizeDelta = new Vector2(64, 64);
+        r.anchorMin = new Vector2(0, 1);
+        r.anchorMax = new Vector2(0, 1);
+        r.pivot = new Vector2(0, 1);
+        r.anchoredPosition = pos;
+
+        Button b = g.AddComponent<Button>();
+        b.onClick.AddListener(() => OpenApp(name));
+
+        g.AddComponent<UIDrag>();
+
+        CreateLabel(g, name);
+    }
+
+    void CreateLabel(GameObject icon, string text)
+    {
+        GameObject t = new GameObject("Label");
+        t.transform.SetParent(icon.transform, false);
+
+        TMP_Text label = t.AddComponent<TextMeshProUGUI>();
+        label.text = text;
+        label.fontSize = 20;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = Color.white;
+
+        RectTransform r = label.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(0, -0.8f);
+        r.anchorMax = new Vector2(1, -0.2f);
+    }
+
+    void OpenApp(string name)
+    {
+        if (windows.ContainsKey(name))
+        {
+            windows[name].SetActive(true);
+            return;
+        }
+
+        GameObject w = CreateWindow(name);
+
+        if (name == "Minesweeper") BuildMines(w);
+        if (name == "Browser") BuildBrowser(w);
+
+        windows.Add(name, w);
+    }
+
+    GameObject CreateWindow(string title)
+    {
+        GameObject w = new GameObject(title);
+        w.transform.SetParent(desktop, false);
+
+        Image img = w.AddComponent<Image>();
+        img.color = new Color(.2f, .2f, .2f);
+
+        RectTransform r = w.GetComponent<RectTransform>();
+        r.sizeDelta = new Vector2(900, 650);
+
+        w.AddComponent<UIDrag>();
+
+        CreateTitleBar(w, title);
+
+        return w;
+    }
+
+    void CreateTitleBar(GameObject window, string title)
+    {
+        GameObject bar = new GameObject("TitleBar");
+        bar.transform.SetParent(window.transform, false);
+
+        Image img = bar.AddComponent<Image>();
+        img.color = new Color(.1f, .1f, .1f);
+
+        RectTransform r = bar.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(0, .93f);
+        r.anchorMax = new Vector2(1, 1);
+
+        TMP_Text t = new GameObject("Title").AddComponent<TextMeshProUGUI>();
+        t.transform.SetParent(bar.transform, false);
+        t.text = title;
+        t.fontSize = 26;
+        t.color = Color.white;
+
+        RectTransform tr = t.GetComponent<RectTransform>();
+        tr.anchorMin = new Vector2(.02f, 0);
+        tr.anchorMax = new Vector2(.7f, 1);
+
+        CreateButton("X", bar.transform, new Vector2(40, 40), () => Destroy(window));
+        CreateButton("_", bar.transform, new Vector2(40, 40), () => window.SetActive(false));
+    }
+
+    GameObject CreateButton(string text, Transform parent, Vector2 size, UnityEngine.Events.UnityAction action)
+    {
+        GameObject g = new GameObject(text);
         g.transform.SetParent(parent, false);
 
         Image img = g.AddComponent<Image>();
-        img.color = Color.white;
+        img.color = new Color(.35f, .35f, .35f);
 
-        Button btn = g.AddComponent<Button>();
-        if (onClick != null) btn.onClick.AddListener(() => onClick());
+        Button b = g.AddComponent<Button>();
+        b.onClick.AddListener(action);
 
         RectTransform r = g.GetComponent<RectTransform>();
         r.sizeDelta = size;
 
-        GameObject textGO = new GameObject("Text");
-        textGO.transform.SetParent(g.transform, false);
-        TMP_Text t = textGO.AddComponent<TextMeshProUGUI>();
-        t.text = name;
-        t.fontSize = 18;
+        TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+        t.transform.SetParent(g.transform, false);
+        t.text = text;
+        t.fontSize = 24;
         t.alignment = TextAlignmentOptions.Center;
-        t.color = Color.black;
-        RectTransform tr = t.rectTransform;
+
+        RectTransform tr = t.GetComponent<RectTransform>();
         tr.anchorMin = Vector2.zero;
         tr.anchorMax = Vector2.one;
-        tr.offsetMin = Vector2.zero;
-        tr.offsetMax = Vector2.zero;
 
         return g;
     }
 
-    void CreateWindow(string name, System.Action<GameObject> builder)
+    void BuildBrowser(GameObject parent)
     {
-        RectTransform w = CreatePanel(name, desktop, new Color(.2f, .2f, .25f));
-        w.anchorMin = new Vector2(0.25f, 0.25f);
-        w.anchorMax = new Vector2(0.75f, 0.75f);
+        CreateButton("YouTube", parent.transform, new Vector2(200, 80),
+            () => Debug.Log("Fake YouTube"));
 
-        GameObject top = CreatePanel("Top", w, new Color(.15f, .15f, .2f)).gameObject;
-        RectTransform tr = top.GetComponent<RectTransform>();
-        tr.anchorMin = new Vector2(0, 1);
-        tr.anchorMax = new Vector2(1, 1);
-        tr.pivot = new Vector2(0.5f, 1);
-        tr.sizeDelta = new Vector2(0, 40);
-        top.AddComponent<DragWindow>().Init(false, this);
-
-        GameObject close = CreateButton("X", top.transform, new Vector2(30, 30), () =>
-        {
-            Minimize(name);
-            if (windows[name].taskButton != null) windows[name].taskButton.SetActive(false);
-        });
-        close.GetComponent<Image>().color = Color.red;
-        RectTransform cr = close.GetComponent<RectTransform>();
-        cr.anchorMin = new Vector2(1, 1);
-        cr.anchorMax = new Vector2(1, 1);
-        cr.pivot = new Vector2(1, 1);
-        cr.anchoredPosition = new Vector2(-5, -5);
-
-        builder(w.gameObject);
-
-        Window win = new Window();
-        win.root = w.gameObject;
-        GameObject taskBtn = CreateButton(name, taskbar, new Vector2(120, 40), () =>
-        {
-            OpenWindow(name);
-            taskBtn.SetActive(true);
-        });
-        win.taskButton = taskBtn;
-
-        windows[name] = win;
-        w.gameObject.SetActive(false);
-        taskBtn.SetActive(false);
+        CreateButton("Steam", parent.transform, new Vector2(200, 80),
+            () => Debug.Log("Fake Steam"));
     }
 
-    void OpenWindow(string name)
+    void BuildMines(GameObject parent)
     {
-        GameObject w = windows[name].root;
-        w.SetActive(true);
-        w.transform.localScale = Vector3.zero;
-        windows[name].taskButton.SetActive(true);
-        StartCoroutine(OpenAnim(w.transform));
+        GameObject grid = new GameObject("Mines");
+        grid.transform.SetParent(parent.transform, false);
+
+        GridLayoutGroup g = grid.AddComponent<GridLayoutGroup>();
+        g.cellSize = new Vector2(60, 60);
+
+        Minesweeper m = grid.AddComponent<Minesweeper>();
+        m.StartGame();
     }
 
-    void Minimize(string name)
+}
+
+public class Minesweeper : MonoBehaviour
+{
+    int width = 9; int height =
+9; int mines = 10;
+
+    int[,] board;
+    bool[,] revealed;
+    bool firstClick = true;
+
+    void StartGame()
     {
-        windows[name].root.SetActive(false);
-        if (windows[name].taskButton != null) windows[name].taskButton.SetActive(false);
+        board = new int[width, height];
+        revealed = new bool[width, height];
+
+        BuildGrid();
     }
 
-    IEnumerator OpenAnim(Transform t)
+    void BuildGrid()
     {
-        float v = 0;
-        while (v < 1)
-        {
-            v += Time.unscaledDeltaTime * 6;
-            t.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, v);
-            yield return null;
-        }
-    }
-
-    public void ShowAbilityUnlock(string abilityName)
-    {
-        StartCoroutine(NotificationCoroutine(abilityName));
-    }
-
-    private IEnumerator NotificationCoroutine(string abilityName)
-    {
-        if (notification == null || notificationText == null) yield break;
-        notification.SetActive(true);
-        notificationText.text = "Вы разблокировали способность:\n" + abilityName;
-        yield return new WaitForSecondsRealtime(4f);
-        notification.SetActive(false);
-    }
-
-    void BuildGallery(GameObject parent) { TMP_Text t = CreateText(parent.transform, "Галерея пуста"); t.alignment = TextAlignmentOptions.Center; }
-    void BuildBrowser(GameObject parent) { TMP_Text t = CreateText(parent.transform, "Браузер открыт"); t.alignment = TextAlignmentOptions.Center; }
-    void BuildRoblox(GameObject parent) { TMP_Text t = CreateText(parent.transform, "Roblox запускается..."); t.alignment = TextAlignmentOptions.Center; }
-    void BuildDota(GameObject parent) { TMP_Text t = CreateText(parent.transform, "Dota открыта"); t.alignment = TextAlignmentOptions.Center; }
-    void BuildMinesweeper(GameObject parent) { TMP_Text t = CreateText(parent.transform, "Сапер готов"); t.alignment = TextAlignmentOptions.Center; }
-
-    private class Window { public GameObject root; public GameObject taskButton; }
-
-    public class DragWindow : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
-    {
-        private RectTransform rect;
-        private Vector2 offset;
-        private bool icon;
-        private ComputerOS os;
-
-        public void Init(bool iconMode, ComputerOS o) { icon = iconMode; os = o; }
-        void Awake() { rect = GetComponent<RectTransform>(); }
-
-        public void OnBeginDrag(PointerEventData e)
-        {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect.parent as RectTransform, e.position, e.pressEventCamera, out offset);
-        }
-
-        public void OnDrag(PointerEventData e)
-        {
-            Vector2 pos;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rect.parent as RectTransform, e.position, e.pressEventCamera, out pos);
-            rect.localPosition = pos - offset;
-        }
-
-        public void OnEndDrag(PointerEventData e)
-        {
-            if (icon)
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
             {
-                float grid = 140f;
-                Vector2 p = rect.anchoredPosition;
-                p.x = Mathf.Round(p.x / grid) * grid;
-                p.y = Mathf.Round(p.y / grid) * grid;
-                rect.anchoredPosition = p;
+                GameObject cell = new GameObject("Cell");
+                cell.transform.SetParent(transform, false);
+
+                Image img = cell.AddComponent<Image>();
+                img.color = Color.gray;
+
+                Button b = cell.AddComponent<Button>();
+
+                int cx = x;
+                int cy = y;
+
+                b.onClick.AddListener(() => Click(cx, cy, img));
             }
+    }
+
+    void PlaceMines(int sx, int sy)
+    {
+        int placed = 0;
+
+        while (placed < mines)
+        {
+            int x = Random.Range(0, width);
+            int y = Random.Range(0, height);
+
+            if (board[x, y] == -1) continue;
+            if (x == sx && y == sy) continue;
+
+            board[x, y] = -1;
+            placed++;
         }
     }
+
+    void Click(int x, int y, Image img)
+    {
+        if (firstClick)
+        {
+            PlaceMines(x, y);
+            firstClick = false;
+        }
+
+        if (board[x, y] == -1)
+        {
+            img.color = Color.red;
+            Debug.Log("BOOM");
+            return;
+        }
+
+        img.color = Color.white;
+        revealed[x, y] = true;
+    }
+
+}
+
+public class UIDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
+{
+    Vector2 offset;
+
+    public void OnBeginDrag(PointerEventData e)
+    {
+        RectTransform r = transform as RectTransform;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            r, e.position, e.pressEventCamera, out offset);
+    }
+
+    public void OnDrag(PointerEventData e)
+    {
+        RectTransform r = transform as RectTransform;
+
+        Vector2 pos;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            r.parent as RectTransform,
+            e.position, e.pressEventCamera, out pos);
+
+        r.localPosition = pos - offset;
+    }
+
 }
