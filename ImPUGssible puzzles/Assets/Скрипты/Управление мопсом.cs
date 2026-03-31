@@ -130,7 +130,7 @@ public class Управлениемопсом : MonoBehaviour
     public float minFallHeight = 3f;
     public float fallSleepinessMultiplier = 10f;
     private bool canRest = false;
-    private bool canMove = true;
+    public bool canMove = true;
 
     // top button container
     private RectTransform topButtonsContainer;
