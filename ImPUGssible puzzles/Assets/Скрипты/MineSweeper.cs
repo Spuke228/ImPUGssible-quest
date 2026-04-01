@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System.Collections;
 
 public class Minesweeper : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class Minesweeper : MonoBehaviour
     bool firstClick = true;
 
     GridLayoutGroup layout;
-    ComputerOS os;
+    ComputerOSManager os;
 
     float timer;
     bool running;
@@ -24,8 +25,6 @@ public class Minesweeper : MonoBehaviour
     TMP_Text minesText;
 
     int flags;
-
-    Dictionary<Cell, float> lastClick = new();
 
     static readonly Color[] colors =
     {
@@ -40,7 +39,7 @@ public class Minesweeper : MonoBehaviour
         Color.gray
     };
 
-    public void Init(GridLayoutGroup g, ComputerOS computer)
+    public void Init(GridLayoutGroup g, ComputerOSManager computer)
     {
         layout = g;
         os = computer;
@@ -54,22 +53,23 @@ public class Minesweeper : MonoBehaviour
         if (running)
         {
             timer += Time.unscaledDeltaTime;
-            timerText.text = Mathf.FloorToInt(timer).ToString("000");
+            if (timerText != null) timerText.text = Mathf.FloorToInt(timer).ToString("000");
         }
     }
 
     void CreateTopBar()
     {
         GameObject bar = new GameObject("TopBar");
-        bar.transform.SetParent(transform.parent);
+        bar.transform.SetParent(transform.parent, false);
 
         Image bg = bar.AddComponent<Image>();
         bg.color = new Color(.15f, .15f, .15f);
 
         RectTransform r = bar.GetComponent<RectTransform>();
-
         r.anchorMin = new Vector2(.1f, .9f);
         r.anchorMax = new Vector2(.9f, .98f);
+        r.offsetMin = Vector2.zero;
+        r.offsetMax = Vector2.zero;
 
         timerText = CreateText(bar.transform, "000");
         timerText.alignment = TextAlignmentOptions.Right;
@@ -81,16 +81,17 @@ public class Minesweeper : MonoBehaviour
     TMP_Text CreateText(Transform parent, string text)
     {
         GameObject g = new GameObject("Text");
-        g.transform.SetParent(parent);
+        g.transform.SetParent(parent, false);
 
         TMP_Text t = g.AddComponent<TextMeshProUGUI>();
         t.text = text;
         t.fontSize = 36;
         t.color = Color.white;
-
         RectTransform r = t.GetComponent<RectTransform>();
         r.anchorMin = Vector2.zero;
         r.anchorMax = Vector2.one;
+        r.offsetMin = Vector2.zero;
+        r.offsetMax = Vector2.zero;
 
         return t;
     }
@@ -103,8 +104,7 @@ public class Minesweeper : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 GameObject c = new GameObject("Cell");
-
-                c.transform.SetParent(layout.transform);
+                c.transform.SetParent(layout.transform, false);
 
                 Image img = c.AddComponent<Image>();
                 img.color = new Color(.7f, .7f, .7f);
@@ -112,43 +112,38 @@ public class Minesweeper : MonoBehaviour
                 Button b = c.AddComponent<Button>();
 
                 TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
-                t.transform.SetParent(c.transform);
-
+                t.transform.SetParent(c.transform, false);
                 t.alignment = TextAlignmentOptions.Center;
                 t.fontSize = 28;
-
                 RectTransform tr = t.GetComponent<RectTransform>();
                 tr.anchorMin = Vector2.zero;
                 tr.anchorMax = Vector2.one;
+                tr.offsetMin = Vector2.zero;
+                tr.offsetMax = Vector2.zero;
 
-                Cell cell = new Cell();
-
-                cell.x = x;
-                cell.y = y;
-                cell.img = img;
-                cell.text = t;
-                cell.button = b;
+                Cell cell = new Cell
+                {
+                    x = x,
+                    y = y,
+                    img = img,
+                    text = t,
+                    button = b
+                };
 
                 grid[x, y] = cell;
 
-                int cx = x;
-                int cy = y;
-
+                int cx = x, cy = y;
                 b.onClick.AddListener(() => LeftClick(cx, cy));
 
                 EventTrigger trigger = c.AddComponent<EventTrigger>();
-
                 EventTrigger.Entry entry = new EventTrigger.Entry();
                 entry.eventID = EventTriggerType.PointerClick;
-
                 entry.callback.AddListener((data) =>
                 {
                     PointerEventData p = (PointerEventData)data;
-
                     if (p.button == PointerEventData.InputButton.Right)
                         ToggleFlag(cx, cy);
                 });
-
                 trigger.triggers.Add(entry);
             }
     }
@@ -156,17 +151,14 @@ public class Minesweeper : MonoBehaviour
     void PlaceMines(int safeX, int safeY)
     {
         int placed = 0;
-
         while (placed < mines)
         {
             int x = Random.Range(0, width);
             int y = Random.Range(0, height);
-
             if (grid[x, y].mine) continue;
             if (x == safeX && y == safeY) continue;
 
             grid[x, y].mine = true;
-
             placed++;
         }
 
@@ -174,18 +166,14 @@ public class Minesweeper : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 int count = 0;
-
                 for (int yy = -1; yy <= 1; yy++)
                     for (int xx = -1; xx <= 1; xx++)
                     {
                         int nx = x + xx;
                         int ny = y + yy;
-
                         if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-
                         if (grid[nx, ny].mine) count++;
                     }
-
                 grid[x, y].number = count;
             }
     }
@@ -193,14 +181,12 @@ public class Minesweeper : MonoBehaviour
     void LeftClick(int x, int y)
     {
         Cell c = grid[x, y];
-
         if (c.flag) return;
 
         if (firstClick)
         {
             firstClick = false;
             running = true;
-
             PlaceMines(x, y);
         }
 
@@ -217,7 +203,6 @@ public class Minesweeper : MonoBehaviour
         }
 
         Flood(x, y);
-
         CheckWin();
     }
 
@@ -229,13 +214,9 @@ public class Minesweeper : MonoBehaviour
         while (q.Count > 0)
         {
             var p = q.Dequeue();
-
             Cell c = grid[p.x, p.y];
-
             if (c.open) continue;
-
             c.open = true;
-
             c.img.color = Color.white;
 
             if (c.number > 0)
@@ -250,9 +231,7 @@ public class Minesweeper : MonoBehaviour
                 {
                     int nx = p.x + xx;
                     int ny = p.y + yy;
-
                     if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-
                     if (!grid[nx, ny].open)
                         q.Enqueue(new Vector2Int(nx, ny));
                 }
@@ -262,9 +241,7 @@ public class Minesweeper : MonoBehaviour
     void DoubleOpen(int x, int y)
     {
         Cell c = grid[x, y];
-
         if (c.number == 0) return;
-
         int aroundFlags = 0;
 
         for (int yy = -1; yy <= 1; yy++)
@@ -272,9 +249,7 @@ public class Minesweeper : MonoBehaviour
             {
                 int nx = x + xx;
                 int ny = y + yy;
-
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-
                 if (grid[nx, ny].flag) aroundFlags++;
             }
 
@@ -285,9 +260,7 @@ public class Minesweeper : MonoBehaviour
             {
                 int nx = x + xx;
                 int ny = y + yy;
-
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-
                 if (!grid[nx, ny].flag)
                     LeftClick(nx, ny);
             }
@@ -296,9 +269,7 @@ public class Minesweeper : MonoBehaviour
     void ToggleFlag(int x, int y)
     {
         Cell c = grid[x, y];
-
         if (c.open) return;
-
         c.flag = !c.flag;
 
         if (c.flag)
@@ -312,36 +283,31 @@ public class Minesweeper : MonoBehaviour
             c.text.text = "";
         }
 
-        minesText.text = (mines - flags).ToString("000");
+        if (minesText != null)
+            minesText.text = (mines - flags).ToString("000");
     }
 
     void Lose()
     {
         running = false;
-
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
-            {
                 if (grid[x, y].mine)
                     grid[x, y].text.text = "*";
-            }
     }
 
     void CheckWin()
     {
         int opened = 0;
-
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
-            {
                 if (grid[x, y].open) opened++;
-            }
 
         if (opened == width * height - mines)
         {
             running = false;
-
-            os.ShowAbilityUnlock("Mine Detector");
+            if (os != null)
+                os.ShowAbilityUnlock("Mine Detector");
         }
     }
 
@@ -349,13 +315,10 @@ public class Minesweeper : MonoBehaviour
     {
         public int x;
         public int y;
-
         public bool mine;
         public bool open;
         public bool flag;
-
         public int number;
-
         public Image img;
         public TMP_Text text;
         public Button button;
