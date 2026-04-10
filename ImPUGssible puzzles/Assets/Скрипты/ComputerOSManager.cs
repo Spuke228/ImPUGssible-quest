@@ -2,323 +2,654 @@
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-
-[System.Serializable]
-public class AppData
-{
-    public string appName;
-    public Sprite iconSprite;
-    public Func<GameObject> createWindowFunc;
-}
 
 public class ComputerOSManager : MonoBehaviour
 {
-    [Header("Player")]
     public Transform player;
-    public Управлениемопсом pugController;
+    public MonoBehaviour pugController;
     public MonoBehaviour cameraController;
 
-    [Header("Monitor")]
-    public Transform monitor;
-    public float interactDistance = 3f;
+    [Header("Desktop")]
+    public Sprite desktopBackground;
+    public Sprite defaultIconSprite;
 
-    [Header("UI Settings")]
-    public Color desktopColor = new Color(0.1f, 0.15f, 0.25f);
-    public Color taskbarColor = new Color(0.05f, 0.05f, 0.05f, 0.7f);
-    public AppData[] apps;
+    [Header("App Sprites")]
+    public Sprite dotaSprite;
+    public Sprite robloxSprite;
+    public Sprite minesweeperSprite;
+    public Sprite browserSprite;
+    public Sprite gallerySprite;
 
-    private Canvas canvas;
-    private RectTransform desktop;
-    private RectTransform iconsContainer;
-    private RectTransform taskbar;
-    private RectTransform runningApps;
+    [Header("Gallery Images")]
+    public Sprite[] galleryPhotos;
 
-    private Dictionary<string, GameObject> openedApps = new Dictionary<string, GameObject>();
-    private GameObject currentPopup;
-    private bool computerOpened = false;
+    [Header("Rutube")]
+    public Sprite[] rutubePreviews;
+    public string[] rutubeTitles;
+
+    [Header("App Images")]
+    public Sprite dotaImage;
+    public Sprite robloxImage;
+
+    [Header("Minesweeper Sprites")]
+    public Sprite mineIcon;
+    public Sprite flagIcon;
+
+    bool computerOpen;
+
+    Canvas canvas;
+    GameObject desktop;
+    GameObject windowLayer;
+    GameObject taskbar;
+
+    List<GameObject> windows = new List<GameObject>();
+
 
     void Start()
     {
-        computerOpened = false; // Canvas создаётся позже
+        CreateEventSystem();
+        CreateCanvas();
+        CreateDesktop();
+        CreateTaskbar();
+
+        canvas.gameObject.SetActive(false);
     }
 
     void Update()
     {
-        if (!computerOpened && monitor != null)
-        {
-            if (Vector3.Distance(player.position, monitor.position) <= interactDistance && Input.GetKeyDown(KeyCode.E))
-            {
-                OpenComputer();
-            }
-        }
+        if (Input.GetKeyDown(KeyCode.E) && !computerOpen)
+            OpenComputer();
+
+        if (computerOpen && Input.GetKeyDown(KeyCode.Escape))
+            CloseComputer();
     }
 
     void OpenComputer()
     {
-        if (canvas == null)
-        {
-            CreateCanvas();
-            CreateDesktop();
-            CreateIconsContainer();
-            CreateTaskbar();
-            CreateIcons();
-        }
+        computerOpen = true;
 
         canvas.gameObject.SetActive(true);
-        computerOpened = true;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        if (pugController) pugController.enabled = false;
+        if (cameraController) cameraController.enabled = false;
     }
 
-    public void CloseComputer()
+    void CloseComputer()
     {
-        if (canvas != null)
-            canvas.gameObject.SetActive(false);
+        computerOpen = false;
 
-        computerOpened = false;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        canvas.gameObject.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (pugController) pugController.enabled = true;
+        if (cameraController) cameraController.enabled = true;
     }
 
-    #region CREATE UI
+    void CreateEventSystem()
+    {
+        if (FindObjectOfType<EventSystem>() == null)
+        {
+            new GameObject(
+                "EventSystem",
+                typeof(EventSystem),
+                typeof(StandaloneInputModule)
+            );
+        }
+    }
 
     void CreateCanvas()
     {
-        GameObject canvasGO = new GameObject("ComputerCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGO.layer = LayerMask.NameToLayer("UI");
-        canvas = canvasGO.GetComponent<Canvas>();
+        GameObject c = new GameObject("ComputerCanvas", typeof(RectTransform));
+
+        canvas = c.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        CanvasScaler cs = canvasGO.GetComponent<CanvasScaler>();
+        CanvasScaler cs = c.AddComponent<CanvasScaler>();
         cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         cs.referenceResolution = new Vector2(1920, 1080);
-        cs.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        cs.matchWidthOrHeight = 0.5f;
+
+        c.AddComponent<GraphicRaycaster>();
     }
 
     void CreateDesktop()
     {
-        GameObject desktopGO = new GameObject("Desktop", typeof(RectTransform), typeof(Image));
-        desktopGO.transform.SetParent(canvas.transform, false);
-        desktop = desktopGO.GetComponent<RectTransform>();
-        desktop.anchorMin = Vector2.zero;
-        desktop.anchorMax = Vector2.one;
-        desktop.offsetMin = Vector2.zero;
-        desktop.offsetMax = Vector2.zero;
+        desktop = new GameObject("Desktop", typeof(RectTransform));
+        desktop.transform.SetParent(canvas.transform, false);
 
-        Image bg = desktopGO.GetComponent<Image>();
-        bg.color = desktopColor;
-    }
+        RectTransform r = desktop.GetComponent<RectTransform>();
 
-    void CreateIconsContainer()
-    {
-        GameObject containerGO = new GameObject("Icons", typeof(RectTransform), typeof(GridLayoutGroup));
-        containerGO.transform.SetParent(desktop, false);
-        iconsContainer = containerGO.GetComponent<RectTransform>();
-        iconsContainer.anchorMin = new Vector2(0, 0);
-        iconsContainer.anchorMax = new Vector2(0, 1);
-        iconsContainer.pivot = new Vector2(0, 1);
-        iconsContainer.anchoredPosition = new Vector2(20, -20);
-        iconsContainer.sizeDelta = new Vector2(400, 800);
+        r.anchorMin = Vector2.zero;
+        r.anchorMax = Vector2.one;
+        r.offsetMin = Vector2.zero;
+        r.offsetMax = Vector2.zero;
 
-        GridLayoutGroup grid = containerGO.GetComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(80, 80);
-        grid.spacing = new Vector2(10, 10);
-        grid.startAxis = GridLayoutGroup.Axis.Vertical;
-        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        Image bg = desktop.AddComponent<Image>();
+
+        if (desktopBackground)
+            bg.sprite = desktopBackground;
+        else
+            bg.color = new Color(.08f, .08f, .08f);
+
+        windowLayer = new GameObject("Windows", typeof(RectTransform));
+        windowLayer.transform.SetParent(desktop.transform, false);
+
+        RectTransform wr = windowLayer.GetComponent<RectTransform>();
+
+        wr.anchorMin = Vector2.zero;
+        wr.anchorMax = Vector2.one;
+        wr.offsetMin = Vector2.zero;
+        wr.offsetMax = Vector2.zero;
+
+        CreateIcons();
     }
 
     void CreateTaskbar()
     {
-        GameObject taskbarGO = new GameObject("Taskbar", typeof(RectTransform), typeof(Image));
-        taskbarGO.transform.SetParent(canvas.transform, false);
-        taskbar = taskbarGO.GetComponent<RectTransform>();
-        taskbar.anchorMin = new Vector2(0, 0);
-        taskbar.anchorMax = new Vector2(1, 0);
-        taskbar.pivot = new Vector2(0.5f, 0);
-        taskbar.sizeDelta = new Vector2(0, 60);
+        taskbar = new GameObject("Taskbar", typeof(RectTransform));
+        taskbar.transform.SetParent(canvas.transform, false);
 
-        Image img = taskbarGO.GetComponent<Image>();
-        img.color = taskbarColor;
+        RectTransform r = taskbar.GetComponent<RectTransform>();
 
-        GameObject runningGO = new GameObject("RunningApps", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        runningGO.transform.SetParent(taskbarGO.transform, false);
-        runningApps = runningGO.GetComponent<RectTransform>();
-        runningApps.anchorMin = new Vector2(0, 0);
-        runningApps.anchorMax = new Vector2(1, 1);
-        runningApps.offsetMin = new Vector2(10, 10);
-        runningApps.offsetMax = new Vector2(-10, -10);
+        r.anchorMin = new Vector2(0, 0);
+        r.anchorMax = new Vector2(1, 0);
+
+        r.pivot = new Vector2(0.5f, 0);
+
+        r.sizeDelta = new Vector2(0, 60);
+
+        Image img = taskbar.AddComponent<Image>();
+        img.color = new Color(.1f, .1f, .1f);
     }
 
     void CreateIcons()
     {
-        foreach (var app in apps)
+        float x = 80;
+        float y = -80;
+        float step = 110;
+
+        CreateIcon("Dota2", dotaSprite, new Vector2(x, y), OpenDota);
+        CreateIcon("Roblox", robloxSprite, new Vector2(x, y - step), OpenRoblox);
+        CreateIcon("Сапёр", minesweeperSprite, new Vector2(x, y - step * 2), OpenMinesweeper);
+        CreateIcon("Browser", browserSprite, new Vector2(x, y - step * 3), OpenBrowser);
+        CreateIcon("Gallery", gallerySprite, new Vector2(x, y - step * 4), OpenGallery);
+    }
+
+    void CreateIcon(string name, Sprite sprite, Vector2 pos, UnityEngine.Events.UnityAction action)
+    {
+        GameObject icon = new GameObject(name, typeof(RectTransform));
+        icon.transform.SetParent(desktop.transform, false);
+
+        RectTransform r = icon.GetComponent<RectTransform>();
+
+        r.anchorMin = new Vector2(0, 1);
+        r.anchorMax = new Vector2(0, 1);
+        r.pivot = new Vector2(0, 1);
+
+        r.sizeDelta = new Vector2(90, 100);
+        r.anchoredPosition = pos;
+
+        GameObject imgGO = new GameObject("Icon", typeof(RectTransform));
+        imgGO.transform.SetParent(icon.transform, false);
+
+        RectTransform ir = imgGO.GetComponent<RectTransform>();
+
+        ir.anchorMin = new Vector2(0.5f, 1);
+        ir.anchorMax = new Vector2(0.5f, 1);
+
+        ir.pivot = new Vector2(0.5f, 1);
+
+        ir.sizeDelta = new Vector2(64, 64);
+        ir.anchoredPosition = Vector2.zero;
+
+        Image img = imgGO.AddComponent<Image>();
+        img.sprite = sprite ? sprite : defaultIconSprite;
+        img.preserveAspect = true;
+
+        Button b = imgGO.AddComponent<Button>();
+        b.onClick.AddListener(action);
+
+        GameObject textGO = new GameObject("Text", typeof(RectTransform));
+        textGO.transform.SetParent(icon.transform, false);
+
+        RectTransform tr = textGO.GetComponent<RectTransform>();
+
+        tr.anchorMin = new Vector2(0.5f, 1);
+        tr.anchorMax = new Vector2(0.5f, 1);
+        tr.pivot = new Vector2(0.5f, 1);
+
+        tr.sizeDelta = new Vector2(120, 30);
+        tr.anchoredPosition = new Vector2(0, -70);
+
+        TMP_Text text = textGO.AddComponent<TextMeshProUGUI>();
+        text.text = name;
+        text.fontSize = 18;
+        text.alignment = TextAlignmentOptions.Center;
+    }
+
+    GameObject CreateWindow(string title, Vector2 size)
+    {
+        GameObject w = new GameObject(title, typeof(RectTransform));
+        w.transform.SetParent(windowLayer.transform, false);
+        w.AddComponent<WindowOpenAnim>();
+
+        RectTransform r = w.GetComponent<RectTransform>();
+
+        r.sizeDelta = size;
+        r.anchoredPosition = Vector2.zero;
+
+        Image bg = w.AddComponent<Image>();
+        bg.color = new Color(.15f, .15f, .18f);
+
+        w.AddComponent<WindowDraggable>();
+
+        GameObject bar = new GameObject("TitleBar", typeof(RectTransform));
+        bar.transform.SetParent(w.transform, false);
+
+        RectTransform br = bar.GetComponent<RectTransform>();
+
+        br.anchorMin = new Vector2(0, .9f);
+        br.anchorMax = new Vector2(1, 1);
+        br.offsetMin = Vector2.zero;
+        br.offsetMax = Vector2.zero;
+
+        Image bi = bar.AddComponent<Image>();
+        bi.color = new Color(.1f, .1f, .1f);
+
+        TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+        t.transform.SetParent(bar.transform, false);
+
+        t.text = title;
+        t.fontSize = 24;
+        t.alignment = TextAlignmentOptions.Center;
+
+        RectTransform tr = t.GetComponent<RectTransform>();
+        tr.anchorMin = Vector2.zero;
+        tr.anchorMax = Vector2.one;
+        tr.offsetMin = Vector2.zero;
+        tr.offsetMax = Vector2.zero;
+
+        GameObject close = new GameObject("Close", typeof(RectTransform));
+        close.transform.SetParent(w.transform, false);
+
+        RectTransform cr = close.GetComponent<RectTransform>();
+
+        cr.anchorMin = new Vector2(1, 1);
+        cr.anchorMax = new Vector2(1, 1);
+
+        cr.pivot = new Vector2(1, 1);
+
+        cr.sizeDelta = new Vector2(30, 30);
+        cr.anchoredPosition = new Vector2(-5, -5);
+
+        Image ci = close.AddComponent<Image>();
+        ci.color = Color.red;
+
+        Button cb = close.AddComponent<Button>();
+        cb.onClick.AddListener(() => Destroy(w));
+
+        TMP_Text xt = new GameObject("X").AddComponent<TextMeshProUGUI>();
+        xt.transform.SetParent(close.transform, false);
+
+        xt.text = "X";
+        xt.alignment = TextAlignmentOptions.Center;
+        xt.fontSize = 20;
+
+        RectTransform xr = xt.GetComponent<RectTransform>();
+        xr.anchorMin = Vector2.zero;
+        xr.anchorMax = Vector2.one;
+        xr.offsetMin = Vector2.zero;
+        xr.offsetMax = Vector2.zero;
+
+        windows.Add(w);
+
+        return w;
+    }
+
+    void OpenDota()
+    {
+        GameObject w = CreateWindow("Dota2", new Vector2(700, 500));
+
+        Image img = new GameObject("Image").AddComponent<Image>();
+        img.transform.SetParent(w.transform, false);
+        img.sprite = dotaImage;
+        img.preserveAspect = true;
+
+        RectTransform r = img.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(.05f, .05f);
+        r.anchorMax = new Vector2(.95f, .85f);
+        r.offsetMin = r.offsetMax = Vector2.zero;
+    }
+
+    void OpenRoblox()
+    {
+        GameObject w = CreateWindow("Roblox", new Vector2(700, 500));
+
+        Image img = new GameObject("Image").AddComponent<Image>();
+        img.transform.SetParent(w.transform, false);
+        img.sprite = robloxImage;
+        img.preserveAspect = true;
+
+        RectTransform r = img.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(.05f, .05f);
+        r.anchorMax = new Vector2(.95f, .85f);
+        r.offsetMin = r.offsetMax = Vector2.zero;
+    }
+
+    void OpenBrowser()
+    {
+        GameObject w = CreateWindow("Browser", new Vector2(800, 550));
+
+        HorizontalLayoutGroup tabs = new GameObject("Tabs")
+            .AddComponent<HorizontalLayoutGroup>();
+
+        tabs.transform.SetParent(w.transform, false);
+
+        RectTransform tr = tabs.GetComponent<RectTransform>();
+        tr.anchorMin = new Vector2(.1f, .85f);
+        tr.anchorMax = new Vector2(.9f, .9f);
+        tr.offsetMin = tr.offsetMax = Vector2.zero;
+
+        tabs.spacing = 10;
+        tabs.childAlignment = TextAnchor.MiddleCenter;
+
+        GameObject content = new GameObject("Content", typeof(RectTransform));
+        content.transform.SetParent(w.transform, false);
+
+        RectTransform cr = content.GetComponent<RectTransform>();
+        cr.anchorMin = new Vector2(.02f, .05f);
+        cr.anchorMax = new Vector2(.98f, .83f);
+        cr.offsetMin = cr.offsetMax = Vector2.zero;
+
+        void Clear()
         {
-            CreateIcon(app);
+            foreach (Transform c in content.transform)
+                Destroy(c.gameObject);
+        }
+
+        void CreateTab(string name, System.Action open)
+        {
+            GameObject tab = new GameObject(name);
+            tab.transform.SetParent(tabs.transform, false);
+
+            Image img = tab.AddComponent<Image>();
+            img.color = new Color(.2f, .2f, .2f);
+
+            Button b = tab.AddComponent<Button>();
+            b.onClick.AddListener(() => { Clear(); open(); });
+
+            TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+            t.transform.SetParent(tab.transform, false);
+
+            t.text = name;
+            t.alignment = TextAlignmentOptions.Center;
+
+            RectTransform r = t.GetComponent<RectTransform>();
+            r.anchorMin = Vector2.zero;
+            r.anchorMax = Vector2.one;
+            r.offsetMin = r.offsetMax = Vector2.zero;
+
+            RectTransform rt = tab.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(150, 30);
+        }
+
+        CreateTab("ChatGPT", () =>
+        {
+            TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+            t.transform.SetParent(content.transform, false);
+
+            t.text = "ERROR 404";
+            t.fontSize = 60;
+            t.alignment = TextAlignmentOptions.Center;
+
+            RectTransform r = t.GetComponent<RectTransform>();
+            r.anchorMin = Vector2.zero;
+            r.anchorMax = Vector2.one;
+            r.offsetMin = r.offsetMax = Vector2.zero;
+        });
+
+        CreateTab("Rutube", () =>
+        {
+            GameObject scrollGO = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
+            GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            viewport.transform.SetParent(scrollGO.transform, false);
+
+            viewport.AddComponent<RectMask2D>();
+
+            RectTransform vpRT = viewport.GetComponent<RectTransform>();
+            vpRT.anchorMin = Vector2.zero;
+            vpRT.anchorMax = Vector2.one;
+            vpRT.offsetMin = vpRT.offsetMax = Vector2.zero;
+
+            viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+            viewport.GetComponent<Mask>().showMaskGraphic = false;
+
+            scrollGO.transform.SetParent(content.transform, false);
+            RectTransform scrollRectTransform = scrollGO.GetComponent<RectTransform>();
+            scrollRectTransform.anchorMin = new Vector2(0, 0);
+            scrollRectTransform.anchorMax = new Vector2(1, 1);
+            scrollRectTransform.offsetMin = scrollRectTransform.offsetMax = Vector2.zero;
+
+            ScrollRect scroll = scrollGO.GetComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.verticalScrollbar = null;
+            scroll.viewport = vpRT;
+
+            Image scrollImage = scrollGO.GetComponent<Image>();
+            scrollImage.color = new Color(0, 0, 0, 0); // прозрачный фон
+
+            GameObject contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            contentGO.transform.SetParent(viewport.transform, false);
+            RectTransform contentRT = contentGO.GetComponent<RectTransform>();
+            contentRT.anchorMin = new Vector2(0, 1);
+            contentRT.anchorMax = new Vector2(1, 1);
+            contentRT.pivot = new Vector2(0.5f, 1);
+            contentRT.anchoredPosition = Vector2.zero;
+
+            VerticalLayoutGroup vLayout = contentGO.GetComponent<VerticalLayoutGroup>();
+            vLayout.spacing = 15;
+            vLayout.childAlignment = TextAnchor.UpperLeft;
+            vLayout.childForceExpandHeight = false;
+            vLayout.childForceExpandWidth = true;
+
+            ContentSizeFitter csf = contentGO.GetComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            scroll.content = contentRT;
+
+            for (int i = 0; i < rutubePreviews.Length; i++)
+            {
+                GameObject video = new GameObject("Video" + i, typeof(RectTransform));
+                video.transform.SetParent(contentGO.transform, false);
+
+                HorizontalLayoutGroup row = video.AddComponent<HorizontalLayoutGroup>();
+                row.spacing = 20;
+                row.childAlignment = TextAnchor.MiddleLeft;
+                row.childForceExpandHeight = false;
+                row.childForceExpandWidth = false;
+
+                // Превью слева
+                Image img = new GameObject("Preview").AddComponent<Image>();
+                img.transform.SetParent(video.transform, false);
+                img.sprite = rutubePreviews[i];
+                img.preserveAspect = true;
+                RectTransform ir = img.GetComponent<RectTransform>();
+                ir.sizeDelta = new Vector2(320, 180); // увеличенное превью
+
+                // Название справа
+                TMP_Text title = new GameObject("Title").AddComponent<TextMeshProUGUI>();
+                title.transform.SetParent(video.transform, false);
+                title.text = rutubeTitles[i];
+                title.fontSize = 28;
+                title.alignment = TextAlignmentOptions.Left;
+                RectTransform tr = title.GetComponent<RectTransform>();
+                tr.sizeDelta = new Vector2(400, 180); // достаточная ширина
+            }
+        });
+
+        CreateTab("Instagram", () =>
+        {
+            TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+            t.transform.SetParent(content.transform, false);
+
+            t.text = "Недоступно в вашей стране";
+            t.fontSize = 40;
+            t.alignment = TextAlignmentOptions.Center;
+
+            RectTransform r = t.GetComponent<RectTransform>();
+            r.anchorMin = Vector2.zero;
+            r.anchorMax = Vector2.one;
+            r.offsetMin = r.offsetMax = Vector2.zero;
+        });
+    }
+
+    void OpenGallery()
+    {
+        GameObject w = CreateWindow("Gallery", new Vector2(700, 500));
+
+        GridLayoutGroup grid = new GameObject("Grid").AddComponent<GridLayoutGroup>();
+        grid.transform.SetParent(w.transform, false);
+
+        RectTransform r = grid.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(.05f, .05f);
+        r.anchorMax = new Vector2(.95f, .85f);
+        r.offsetMin = r.offsetMax = Vector2.zero;
+
+        grid.cellSize = new Vector2(150, 120);
+        grid.spacing = new Vector2(10, 10);
+
+        foreach (Sprite photo in galleryPhotos)
+        {
+            GameObject img = new GameObject(photo.name);
+            img.transform.SetParent(grid.transform, false);
+
+            Image i = img.AddComponent<Image>();
+            i.sprite = photo;
+            i.preserveAspect = true;
+
+            Button b = img.AddComponent<Button>();
+            b.onClick.AddListener(() => OpenPhoto(photo));
         }
     }
 
-    void CreateIcon(AppData app)
+    void OpenPhoto(Sprite photo)
     {
-        GameObject iconGO = new GameObject(app.appName + "Icon", typeof(RectTransform), typeof(Button), typeof(Image));
-        iconGO.transform.SetParent(iconsContainer, false);
-        Image img = iconGO.GetComponent<Image>();
-        img.sprite = app.iconSprite;
-        img.color = Color.white;
+        GameObject w = CreateWindow(photo.name, new Vector2(600, 500));
 
-        RectTransform rt = iconGO.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(80, 80);
+        GameObject imgGO = new GameObject("Photo", typeof(RectTransform));
+        imgGO.transform.SetParent(w.transform, false);
 
-        Button btn = iconGO.GetComponent<Button>();
-        btn.onClick.AddListener(() =>
+        RectTransform r = imgGO.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(.05f, .05f);
+        r.anchorMax = new Vector2(.95f, .9f);
+        r.offsetMin = r.offsetMax = Vector2.zero;
+
+        Image img = imgGO.AddComponent<Image>();
+        img.sprite = photo;
+        img.preserveAspect = true;
+
+        Button zoom = imgGO.AddComponent<Button>();
+        zoom.onClick.AddListener(() =>
         {
-            if (openedApps.ContainsKey(app.appName))
-            {
-                openedApps[app.appName].SetActive(true);
-                return;
-            }
-            GameObject w = app.createWindowFunc.Invoke();
-            openedApps[app.appName] = w;
-            AddToTaskbar(app.appName, w);
+            if (r.localScale == Vector3.one)
+                r.localScale = Vector3.one * 1.8f;
+            else
+                r.localScale = Vector3.one;
         });
-
-        // TMP текст под иконкой
-        GameObject textGO = new GameObject("Text", typeof(RectTransform));
-        textGO.transform.SetParent(iconGO.transform, false);
-        TMP_Text txt = textGO.AddComponent<TMP_Text>();
-        txt.text = app.appName;
-        txt.fontSize = 20;
-        txt.alignment = TextAlignmentOptions.Bottom;
-        txt.color = Color.white;
-        RectTransform txtRT = txt.rectTransform;
-        txtRT.anchorMin = new Vector2(0, 0);
-        txtRT.anchorMax = new Vector2(1, 0.3f);
-        txtRT.offsetMin = Vector2.zero;
-        txtRT.offsetMax = Vector2.zero;
     }
 
-    void AddToTaskbar(string name, GameObject window)
+    void OpenMinesweeper()
     {
-        GameObject btnGO = new GameObject(name + "TaskbarButton", typeof(RectTransform), typeof(Button), typeof(Image));
-        btnGO.transform.SetParent(runningApps, false);
-        Image img = btnGO.GetComponent<Image>();
-        img.color = new Color(0.8f, 0.8f, 0.8f);
+        GameObject w = CreateWindow("Сапёр", new Vector2(600, 500));
 
-        Button btn = btnGO.GetComponent<Button>();
-        btn.onClick.AddListener(() =>
-        {
-            bool active = window.activeSelf;
-            window.SetActive(!active);
-        });
+        GridLayoutGroup grid = new GameObject("Grid").AddComponent<GridLayoutGroup>();
+        grid.transform.SetParent(w.transform, false);
 
-        GameObject textGO = new GameObject("Text", typeof(RectTransform), typeof(TMP_Text));
-        textGO.transform.SetParent(btnGO.transform, false);
-        TMP_Text txt = textGO.GetComponent<TMP_Text>();
-        txt.text = name;
-        txt.alignment = TextAlignmentOptions.Center;
-        txt.color = Color.black;
-        txt.rectTransform.sizeDelta = new Vector2(100, 40);
+        RectTransform r = grid.GetComponent<RectTransform>();
+
+        r.anchorMin = new Vector2(.05f, .05f);
+        r.anchorMax = new Vector2(.95f, .85f);
+
+        r.offsetMin = Vector2.zero;
+        r.offsetMax = Vector2.zero;
+
+        grid.cellSize = new Vector2(32, 32);
+        grid.spacing = new Vector2(2, 2);
+
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = 9;
+
+        Minesweeper m = grid.gameObject.AddComponent<Minesweeper>();
+        m.Init(grid, this);
+        m.mineSprite = mineIcon;
+        m.flagSprite = flagIcon;
+
+        Button restart = new GameObject("Restart").AddComponent<Button>();
+        restart.transform.SetParent(w.transform, false);
+
+        RectTransform rr = restart.GetComponent<RectTransform>();
+        rr.anchorMin = new Vector2(.4f, .87f);
+        rr.anchorMax = new Vector2(.6f, .92f);
+
+        Image ri = restart.gameObject.AddComponent<Image>();
+        ri.color = Color.gray;
+
+        TMP_Text rt = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+        rt.transform.SetParent(restart.transform, false);
+        rt.text = "Restart";
+        rt.alignment = TextAlignmentOptions.Center;
+
+        RectTransform rrt = rt.GetComponent<RectTransform>();
+        rrt.anchorMin = Vector2.zero;
+        rrt.anchorMax = Vector2.one;
+        rrt.offsetMin = rrt.offsetMax = Vector2.zero;
     }
 
-    #endregion
-
-    #region WINDOWS + CLOSE BUTTON
-
-    public GameObject CreateWindow(string title, Vector2 size, Color bgColor)
+    public void ShowAbilityUnlock(string ability)
     {
-        GameObject panel = new GameObject(title + "Window", typeof(RectTransform), typeof(Image));
-        panel.transform.SetParent(canvas.transform, false);
-        RectTransform rt = panel.GetComponent<RectTransform>();
-        rt.sizeDelta = size;
-        panel.AddComponent<WindowDraggable>();
-        panel.GetComponent<Image>().color = bgColor;
+        GameObject w = CreateWindow("Способность", new Vector2(400, 200));
 
-        // Заголовок
-        GameObject header = new GameObject("Header", typeof(RectTransform), typeof(Image));
-        header.transform.SetParent(panel.transform, false);
-        RectTransform hrt = header.GetComponent<RectTransform>();
-        hrt.anchorMin = new Vector2(0, 1);
-        hrt.anchorMax = new Vector2(1, 1);
-        hrt.pivot = new Vector2(0.5f, 1);
-        hrt.sizeDelta = new Vector2(0, 30);
-        Image hdrImg = header.GetComponent<Image>();
-        hdrImg.color = Color.gray;
+        TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+        t.transform.SetParent(w.transform, false);
 
-        GameObject textGO = new GameObject("Title", typeof(RectTransform));
-        textGO.transform.SetParent(header.transform, false);
-        Text txt = textGO.AddComponent<Text>();
-        txt.text = title;
-        txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        txt.alignment = TextAnchor.MiddleLeft;
-        txt.color = Color.white;
-        RectTransform txtRT = txt.rectTransform;
-        txtRT.anchorMin = Vector2.zero;
-        txtRT.anchorMax = Vector2.one;
-        txtRT.offsetMin = new Vector2(10, 0);
-        txtRT.offsetMax = new Vector2(-30, 0);
+        t.text = "Разблокировано: " + ability;
 
-        GameObject closeBtnGO = new GameObject("CloseButton", typeof(RectTransform), typeof(Button), typeof(Image));
-        closeBtnGO.transform.SetParent(header.transform, false);
-        RectTransform cRT = closeBtnGO.GetComponent<RectTransform>();
-        cRT.anchorMin = new Vector2(1, 0);
-        cRT.anchorMax = new Vector2(1, 1);
-        cRT.pivot = new Vector2(1, 0.5f);
-        cRT.sizeDelta = new Vector2(30, 30);
-        Image cImg = closeBtnGO.GetComponent<Image>();
-        cImg.color = Color.red;
+        t.fontSize = 28;
+        t.color = Color.yellow;
 
-        Button closeBtn = closeBtnGO.GetComponent<Button>();
-        closeBtn.onClick.AddListener(() =>
-        {
-            panel.SetActive(false);
-        });
+        t.alignment = TextAlignmentOptions.Center;
 
-        return panel;
+        RectTransform r = t.GetComponent<RectTransform>();
+
+        r.anchorMin = new Vector2(.05f, .2f);
+        r.anchorMax = new Vector2(.95f, .8f);
+
+        r.offsetMin = Vector2.zero;
+        r.offsetMax = Vector2.zero;
     }
 
-    #endregion
-
-    #region POPUP
-
-    public void ShowAbilityUnlock(string abilityName)
+    public void ShowMinesweeperLose()
     {
-        if (canvas == null) return;
+        GameObject w = CreateWindow("Поражение", new Vector2(400, 200));
 
-        if (currentPopup != null) Destroy(currentPopup);
+        TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
+        t.transform.SetParent(w.transform, false);
 
-        GameObject panel = new GameObject("AbilityPopup", typeof(RectTransform), typeof(Image));
-        panel.transform.SetParent(canvas.transform, false);
-        RectTransform rt = panel.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(400, 80);
-        rt.anchoredPosition = new Vector2(960, 900);
+        t.text = "Вы подорвались на мине";
 
-        Image img = panel.GetComponent<Image>();
-        img.color = new Color(0, 0, 0, 0.7f);
+        t.fontSize = 36;
+        t.alignment = TextAlignmentOptions.Center;
 
-        GameObject textGO = new GameObject("Text", typeof(RectTransform), typeof(TMP_Text));
-        textGO.transform.SetParent(panel.transform, false);
-        TMP_Text tmp = textGO.GetComponent<TMP_Text>();
-        tmp.text = $"Ability Unlocked: {abilityName}";
-        tmp.fontSize = 36;
-        tmp.color = Color.white;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.rectTransform.sizeDelta = rt.sizeDelta;
-        tmp.rectTransform.anchoredPosition = Vector2.zero;
-
-        currentPopup = panel;
-
-        StartCoroutine(HidePopupAfterDelay(panel, 3f));
+        RectTransform r = t.GetComponent<RectTransform>();
+        r.anchorMin = new Vector2(.1f, .2f);
+        r.anchorMax = new Vector2(.9f, .8f);
+        r.offsetMin = r.offsetMax = Vector2.zero;
     }
-
-    private IEnumerator HidePopupAfterDelay(GameObject popup, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (popup != null) Destroy(popup);
-    }
-
-    #endregion
 }

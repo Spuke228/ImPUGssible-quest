@@ -13667,14 +13667,18 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.007
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4995974331939151604, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
     m_RemovedGameObjects:
     - {fileID: 7654813552850283851, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9112500034273747832, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
-      insertIndex: 3
+      insertIndex: -1
       addedObject: {fileID: 1533763861}
+    - targetCorrespondingSourceObject: {fileID: 9112500034273747832, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1533763866}
   m_SourcePrefab: {fileID: 100100000, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
 --- !u!1 &941549721 stripped
 GameObject:
@@ -22353,11 +22357,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 873fa1f72b14ce44f8535c72f6542002, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ComputerTrigger
---- !u!4 &1533763862 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4589591449138297630, guid: 7699f5af06713974ba61777a8a830f6e, type: 3}
-  m_PrefabInstance: {fileID: 917412730}
+--- !u!114 &1533763866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1533763858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a826b41f0692b634a84cf65c258d4545, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComputerOSManager
+  player: {fileID: 0}
+  pugController: {fileID: 0}
+  cameraController: {fileID: 0}
+  desktopBackground: {fileID: 0}
+  defaultIconSprite: {fileID: 0}
+  dotaSprite: {fileID: 0}
+  robloxSprite: {fileID: 0}
+  minesweeperSprite: {fileID: 0}
+  browserSprite: {fileID: 0}
+  gallerySprite: {fileID: 0}
+  galleryPhotos: []
+  rutubePreviews: []
+  rutubeTitles: []
+  dotaImage: {fileID: 0}
+  robloxImage: {fileID: 0}
 --- !u!1 &1535677920 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 156976217076831411, guid: 80e5bbfa6aa12b34ca98423c9e7a0f86, type: 3}
@@ -28869,6 +28895,100 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1896534860}
   m_CullTransparentMesh: 1
+--- !u!1 &1905037117
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1905037119}
+  - component: {fileID: 1905037118}
+  - component: {fileID: 1905037120}
+  m_Layer: 0
+  m_Name: ComputerSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1905037118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905037117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a826b41f0692b634a84cf65c258d4545, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComputerOS
+  player: {fileID: 1744110504}
+  pugController: {fileID: 1744110500}
+  cameraController: {fileID: 1744110500}
+  desktopBackground: {fileID: 21300000, guid: 546d1dc4b9d4012468008f52215274d9, type: 3}
+  defaultIconSprite: {fileID: 21300000, guid: 78a4edfc2fdedbc479afa5c2024a5e4e, type: 3}
+  dotaSprite: {fileID: 21300000, guid: 74abff1a972ba89478dc0b2abc3cedc0, type: 3}
+  robloxSprite: {fileID: 21300000, guid: c9ac2189fe391bc49ba2edf09d10b754, type: 3}
+  minesweeperSprite: {fileID: 21300000, guid: d81fddbd48ad18f4890dd63e12f29d01, type: 3}
+  browserSprite: {fileID: 21300000, guid: 59bb107ac19e2834fb95f669f26f0076, type: 3}
+  gallerySprite: {fileID: 21300000, guid: 35cf60c2d5f2c0e4090ca0ec1b9e775e, type: 3}
+  galleryPhotos:
+  - {fileID: 21300000, guid: 5ae81ee6a85b0a249922182fe63fef1e, type: 3}
+  - {fileID: 21300000, guid: c339987441832554099e761fa4b7306d, type: 3}
+  - {fileID: 21300000, guid: 13c8adbce219446469b4c13c0e6bdba0, type: 3}
+  - {fileID: 21300000, guid: 5dc7e4942a9750b4889953ea04721521, type: 3}
+  - {fileID: 21300000, guid: 647132031dad3564fba4bde3e8619327, type: 3}
+  - {fileID: 21300000, guid: 03938affcdad292429a49e5f52a012d5, type: 3}
+  - {fileID: 21300000, guid: b48cb632c66d74a4bb286331f87a5a94, type: 3}
+  rutubePreviews:
+  - {fileID: 21300000, guid: 647132031dad3564fba4bde3e8619327, type: 3}
+  - {fileID: 21300000, guid: c339987441832554099e761fa4b7306d, type: 3}
+  - {fileID: 21300000, guid: 13c8adbce219446469b4c13c0e6bdba0, type: 3}
+  - {fileID: 21300000, guid: b48cb632c66d74a4bb286331f87a5a94, type: 3}
+  - {fileID: 21300000, guid: c6026beb2949b9f4e8be4048545fa94c, type: 3}
+  - {fileID: 21300000, guid: 78a4edfc2fdedbc479afa5c2024a5e4e, type: 3}
+  rutubeTitles:
+  - "\u0431\u0443\u0431"
+  - "\u0441\u043C\u0438"
+  - "\u0444\u044B\u0432\u044B\u0444"
+  - "\u0439\u0446\u0443\u0439\u0446"
+  - "\u043D\u0433\u0448\u043D"
+  - "\u0434\u044C\u043B"
+  dotaImage: {fileID: 21300000, guid: 5ae81ee6a85b0a249922182fe63fef1e, type: 3}
+  robloxImage: {fileID: 21300000, guid: 03938affcdad292429a49e5f52a012d5, type: 3}
+--- !u!4 &1905037119
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905037117}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -67.0815, y: 6.04435, z: 47.15052}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1905037120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905037117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30c081a8421ed6b4b96c574f134ba795, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minesweeper
+  mineSprite: {fileID: 21300000, guid: 687735e3e2974d14e87956c887c1a4bf, type: 3}
+  flagSprite: {fileID: 21300000, guid: 08935d05b9ad4c64fae1ab8f5ce88156, type: 3}
+  mines: 10
 --- !u!1001 &1905754174
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30006,68 +30126,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &2017628186
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2017628188}
-  - component: {fileID: 2017628189}
-  m_Layer: 0
-  m_Name: ComputerOSManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &2017628188
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2017628186}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -64.79, y: 7.29554, z: 47.73098}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2017628189
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2017628186}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a826b41f0692b634a84cf65c258d4545, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ComputerOSManager
-  player: {fileID: 1744110504}
-  pugController: {fileID: 1744110500}
-  cameraController: {fileID: 1744110500}
-  monitor: {fileID: 1533763862}
-  interactDistance: 3
-  desktopColor: {r: 0.1, g: 0.15, b: 0.25, a: 1}
-  taskbarColor: {r: 0.05, g: 0.05, b: 0.05, a: 0.7}
-  apps:
-  - appName: "\u0414\u043E\u0442\u043A2"
-    iconSprite: {fileID: 21300000, guid: 74abff1a972ba89478dc0b2abc3cedc0, type: 3}
-  - appName: "\u0420\u043E\u0431\u043B\u043E\u043A\u0430\u0441"
-    iconSprite: {fileID: 21300000, guid: c9ac2189fe391bc49ba2edf09d10b754, type: 3}
-  - appName: "\u0421\u0430\u043F\u0435\u0440"
-    iconSprite: {fileID: 21300000, guid: d81fddbd48ad18f4890dd63e12f29d01, type: 3}
-  - appName: "\u0421\u0432\u0438\u0442\u0438\u0444\u043E\u043A\u0441"
-    iconSprite: {fileID: 21300000, guid: bca985129f22beb4a9e06c14ed7aee55, type: 3}
-  - appName: "\u0413\u0430\u043B\u0435\u0440\u0435\u044F"
-    iconSprite: {fileID: 21300000, guid: 35cf60c2d5f2c0e4090ca0ec1b9e775e, type: 3}
 --- !u!1001 &2017968015
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34363,4 +34421,4 @@ SceneRoots:
   - {fileID: 2033041779}
   - {fileID: 550366995}
   - {fileID: 55709966}
-  - {fileID: 2017628188}
+  - {fileID: 1905037119}
