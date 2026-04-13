@@ -22384,6 +22384,8 @@ MonoBehaviour:
   rutubeTitles: []
   dotaImage: {fileID: 0}
   robloxImage: {fileID: 0}
+  mineIcon: {fileID: 0}
+  flagIcon: {fileID: 0}
 --- !u!1 &1535677920 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 156976217076831411, guid: 80e5bbfa6aa12b34ca98423c9e7a0f86, type: 3}
@@ -28959,6 +28961,8 @@ MonoBehaviour:
   - "\u0434\u044C\u043B"
   dotaImage: {fileID: 21300000, guid: 5ae81ee6a85b0a249922182fe63fef1e, type: 3}
   robloxImage: {fileID: 21300000, guid: 03938affcdad292429a49e5f52a012d5, type: 3}
+  mineIcon: {fileID: 21300000, guid: 687735e3e2974d14e87956c887c1a4bf, type: 3}
+  flagIcon: {fileID: 21300000, guid: 08935d05b9ad4c64fae1ab8f5ce88156, type: 3}
 --- !u!4 &1905037119
 Transform:
   m_ObjectHideFlags: 0

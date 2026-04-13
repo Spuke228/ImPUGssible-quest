@@ -286,6 +286,7 @@ public class Minesweeper : MonoBehaviour
 
             if (os != null)
                 os.ShowAbilityUnlock("Mine Detector");
+            os.UnlockAbilityByTag("SprintBlock");
         }
     }
 
@@ -359,8 +360,8 @@ public class Minesweeper : MonoBehaviour
         TopBar.transform.SetParent(layout.transform.parent, false);
 
         RectTransform tr = TopBar.GetComponent<RectTransform>();
-        tr.anchorMin = new Vector2(0, .88f);
-        tr.anchorMax = new Vector2(1, .95f);
+        tr.anchorMin = new Vector2(0, .82f);
+        tr.anchorMax = new Vector2(1, .90f);
         tr.offsetMin = Vector2.zero;
         tr.offsetMax = Vector2.zero;
 

@@ -415,52 +415,53 @@ public class ComputerOSManager : MonoBehaviour
 
         CreateTab("Rutube", () =>
         {
-            GameObject scrollGO = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
+            GameObject scrollGO = new GameObject("ScrollView", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+            scrollGO.transform.SetParent(content.transform, false);
+
+            RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
+            scrollRT.anchorMin = Vector2.zero;
+            scrollRT.anchorMax = Vector2.one;
+            scrollRT.offsetMin = Vector2.zero;
+            scrollRT.offsetMax = Vector2.zero;
+
+            scrollGO.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
+            ScrollRect scroll = scrollGO.GetComponent<ScrollRect>();
+            scroll.horizontal = false;
+
+            // VIEWPORT
             GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
             viewport.transform.SetParent(scrollGO.transform, false);
-
-            viewport.AddComponent<RectMask2D>();
 
             RectTransform vpRT = viewport.GetComponent<RectTransform>();
             vpRT.anchorMin = Vector2.zero;
             vpRT.anchorMax = Vector2.one;
-            vpRT.offsetMin = vpRT.offsetMax = Vector2.zero;
+            vpRT.offsetMin = Vector2.zero;
+            vpRT.offsetMax = Vector2.zero;
 
             viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);
             viewport.GetComponent<Mask>().showMaskGraphic = false;
 
-            scrollGO.transform.SetParent(content.transform, false);
-            RectTransform scrollRectTransform = scrollGO.GetComponent<RectTransform>();
-            scrollRectTransform.anchorMin = new Vector2(0, 0);
-            scrollRectTransform.anchorMax = new Vector2(1, 1);
-            scrollRectTransform.offsetMin = scrollRectTransform.offsetMax = Vector2.zero;
-
-            ScrollRect scroll = scrollGO.GetComponent<ScrollRect>();
-            scroll.horizontal = false;
-            scroll.vertical = true;
-            scroll.verticalScrollbar = null;
             scroll.viewport = vpRT;
 
-            Image scrollImage = scrollGO.GetComponent<Image>();
-            scrollImage.color = new Color(0, 0, 0, 0); // прозрачный фон
-
-            GameObject contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            // CONTENT
+            GameObject contentGO = new GameObject("Content", typeof(RectTransform));
             contentGO.transform.SetParent(viewport.transform, false);
+
             RectTransform contentRT = contentGO.GetComponent<RectTransform>();
             contentRT.anchorMin = new Vector2(0, 1);
             contentRT.anchorMax = new Vector2(1, 1);
             contentRT.pivot = new Vector2(0.5f, 1);
             contentRT.anchoredPosition = Vector2.zero;
 
-            VerticalLayoutGroup vLayout = contentGO.GetComponent<VerticalLayoutGroup>();
-            vLayout.spacing = 15;
-            vLayout.childAlignment = TextAnchor.UpperLeft;
-            vLayout.childForceExpandHeight = false;
-            vLayout.childForceExpandWidth = true;
+            VerticalLayoutGroup layout = contentGO.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 20;
+            layout.padding = new RectOffset(20, 20, 20, 20);
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = true;
 
-            ContentSizeFitter csf = contentGO.GetComponent<ContentSizeFitter>();
-            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            ContentSizeFitter fitter = contentGO.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             scroll.content = contentRT;
 
@@ -469,29 +470,37 @@ public class ComputerOSManager : MonoBehaviour
                 GameObject video = new GameObject("Video" + i, typeof(RectTransform));
                 video.transform.SetParent(contentGO.transform, false);
 
+                LayoutElement le = video.AddComponent<LayoutElement>();
+                le.preferredHeight = 200;
+
                 HorizontalLayoutGroup row = video.AddComponent<HorizontalLayoutGroup>();
                 row.spacing = 20;
                 row.childAlignment = TextAnchor.MiddleLeft;
-                row.childForceExpandHeight = false;
                 row.childForceExpandWidth = false;
+                row.childForceExpandHeight = false;
 
-                // Превью слева
-                Image img = new GameObject("Preview").AddComponent<Image>();
-                img.transform.SetParent(video.transform, false);
-                img.sprite = rutubePreviews[i];
-                img.preserveAspect = true;
-                RectTransform ir = img.GetComponent<RectTransform>();
-                ir.sizeDelta = new Vector2(320, 180); // увеличенное превью
+                // PREVIEW
+                Image preview = new GameObject("Preview").AddComponent<Image>();
+                preview.transform.SetParent(video.transform, false);
+                preview.sprite = rutubePreviews[i];
+                preview.preserveAspect = true;
 
-                // Название справа
+                RectTransform pr = preview.GetComponent<RectTransform>();
+                pr.sizeDelta = new Vector2(320, 180);
+
+                // TITLE
                 TMP_Text title = new GameObject("Title").AddComponent<TextMeshProUGUI>();
                 title.transform.SetParent(video.transform, false);
                 title.text = rutubeTitles[i];
                 title.fontSize = 28;
                 title.alignment = TextAlignmentOptions.Left;
+
                 RectTransform tr = title.GetComponent<RectTransform>();
-                tr.sizeDelta = new Vector2(400, 180); // достаточная ширина
+                tr.sizeDelta = new Vector2(500, 180);
             }
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRT);
+            scroll.verticalNormalizedPosition = 1f;
         });
 
         CreateTab("Instagram", () =>
@@ -574,11 +583,12 @@ public class ComputerOSManager : MonoBehaviour
 
         RectTransform r = grid.GetComponent<RectTransform>();
 
-        r.anchorMin = new Vector2(.05f, .05f);
-        r.anchorMax = new Vector2(.95f, .85f);
+        r.anchorMin = new Vector2(.5f, .5f);
+        r.anchorMax = new Vector2(.5f, .5f);
+        r.pivot = new Vector2(.5f, .5f);
 
-        r.offsetMin = Vector2.zero;
-        r.offsetMax = Vector2.zero;
+        r.sizeDelta = new Vector2(310, 310);
+        r.anchoredPosition = new Vector2(0, -40);
 
         grid.cellSize = new Vector2(32, 32);
         grid.spacing = new Vector2(2, 2);
@@ -590,26 +600,6 @@ public class ComputerOSManager : MonoBehaviour
         m.Init(grid, this);
         m.mineSprite = mineIcon;
         m.flagSprite = flagIcon;
-
-        Button restart = new GameObject("Restart").AddComponent<Button>();
-        restart.transform.SetParent(w.transform, false);
-
-        RectTransform rr = restart.GetComponent<RectTransform>();
-        rr.anchorMin = new Vector2(.4f, .87f);
-        rr.anchorMax = new Vector2(.6f, .92f);
-
-        Image ri = restart.gameObject.AddComponent<Image>();
-        ri.color = Color.gray;
-
-        TMP_Text rt = new GameObject("Text").AddComponent<TextMeshProUGUI>();
-        rt.transform.SetParent(restart.transform, false);
-        rt.text = "Restart";
-        rt.alignment = TextAlignmentOptions.Center;
-
-        RectTransform rrt = rt.GetComponent<RectTransform>();
-        rrt.anchorMin = Vector2.zero;
-        rrt.anchorMax = Vector2.one;
-        rrt.offsetMin = rrt.offsetMax = Vector2.zero;
     }
 
     public void ShowAbilityUnlock(string ability)
@@ -651,5 +641,20 @@ public class ComputerOSManager : MonoBehaviour
         r.anchorMin = new Vector2(.1f, .2f);
         r.anchorMax = new Vector2(.9f, .8f);
         r.offsetMin = r.offsetMax = Vector2.zero;
+    }
+
+    public void UnlockAbilityByTag(string tag)
+    {
+        GameObject ability = GameObject.FindGameObjectWithTag(tag);
+
+        if (ability != null)
+        {
+            ability.SetActive(true);
+            ShowAbilityUnlock(tag);
+        }
+        else
+        {
+            Debug.Log("Ability with tag not found: " + tag);
+        }
     }
 }
