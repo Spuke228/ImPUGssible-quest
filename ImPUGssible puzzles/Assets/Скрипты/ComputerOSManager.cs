@@ -58,14 +58,11 @@ public class ComputerOSManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && !computerOpen)
-            OpenComputer();
-
         if (computerOpen && Input.GetKeyDown(KeyCode.Escape))
             CloseComputer();
     }
 
-    void OpenComputer()
+    public void OpenComputer()
     {
         computerOpen = true;
 
@@ -412,95 +409,92 @@ public class ComputerOSManager : MonoBehaviour
             r.anchorMax = Vector2.one;
             r.offsetMin = r.offsetMax = Vector2.zero;
         });
-
+        Clear();
         CreateTab("Rutube", () =>
         {
-            GameObject scrollGO = new GameObject("ScrollView", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+            if (rutubePreviews == null || rutubeTitles == null) return;
+
+            GameObject scrollGO = new GameObject("Scroll", typeof(RectTransform));
             scrollGO.transform.SetParent(content.transform, false);
 
-            RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
-            scrollRT.anchorMin = Vector2.zero;
-            scrollRT.anchorMax = Vector2.one;
-            scrollRT.offsetMin = Vector2.zero;
-            scrollRT.offsetMax = Vector2.zero;
+            RectTransform sr = scrollGO.GetComponent<RectTransform>();
+            sr.anchorMin = Vector2.zero;
+            sr.anchorMax = Vector2.one;
+            sr.offsetMin = Vector2.zero;
+            sr.offsetMax = Vector2.zero;
 
-            scrollGO.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+            Image bg = scrollGO.AddComponent<Image>();
+            bg.color = new Color(.12f, .12f, .12f);
 
-            ScrollRect scroll = scrollGO.GetComponent<ScrollRect>();
+            ScrollRect scroll = scrollGO.AddComponent<ScrollRect>();
             scroll.horizontal = false;
+            scroll.scrollSensitivity = 10f;
+            scroll.decelerationRate = 0.05f;
+            scroll.inertia = true;
 
-            // VIEWPORT
-            GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            GameObject viewport = new GameObject("Viewport", typeof(RectTransform));
             viewport.transform.SetParent(scrollGO.transform, false);
 
-            RectTransform vpRT = viewport.GetComponent<RectTransform>();
-            vpRT.anchorMin = Vector2.zero;
-            vpRT.anchorMax = Vector2.one;
-            vpRT.offsetMin = Vector2.zero;
-            vpRT.offsetMax = Vector2.zero;
+            RectTransform vr = viewport.GetComponent<RectTransform>();
+            vr.anchorMin = Vector2.zero;
+            vr.anchorMax = Vector2.one;
+            vr.offsetMin = Vector2.zero;
+            vr.offsetMax = Vector2.zero;
 
-            viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);
-            viewport.GetComponent<Mask>().showMaskGraphic = false;
+            Image vimg = viewport.AddComponent<Image>();
+            vimg.color = new Color(0, 0, 0, 0.01f);
 
-            scroll.viewport = vpRT;
+            Mask mask = viewport.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
 
-            // CONTENT
-            GameObject contentGO = new GameObject("Content", typeof(RectTransform));
-            contentGO.transform.SetParent(viewport.transform, false);
+            GameObject list = new GameObject("Content", typeof(RectTransform));
+            list.transform.SetParent(viewport.transform, false);
 
-            RectTransform contentRT = contentGO.GetComponent<RectTransform>();
-            contentRT.anchorMin = new Vector2(0, 1);
-            contentRT.anchorMax = new Vector2(1, 1);
-            contentRT.pivot = new Vector2(0.5f, 1);
-            contentRT.anchoredPosition = Vector2.zero;
+            RectTransform lr = list.GetComponent<RectTransform>();
+            lr.anchorMin = new Vector2(0, 1);
+            lr.anchorMax = new Vector2(1, 1);
+            lr.pivot = new Vector2(0.5f, 1);
+            lr.anchoredPosition = Vector2.zero;
 
-            VerticalLayoutGroup layout = contentGO.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 20;
+            VerticalLayoutGroup layout = list.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 25;
             layout.padding = new RectOffset(20, 20, 20, 20);
-            layout.childForceExpandHeight = false;
             layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
 
-            ContentSizeFitter fitter = contentGO.AddComponent<ContentSizeFitter>();
+            ContentSizeFitter fitter = list.AddComponent<ContentSizeFitter>();
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            scroll.content = contentRT;
+            scroll.viewport = vr;
+            scroll.content = lr;
 
-            for (int i = 0; i < rutubePreviews.Length; i++)
+            int count = Mathf.Min(rutubePreviews.Length, rutubeTitles.Length);
+
+            for (int i = 0; i < count; i++)
             {
                 GameObject video = new GameObject("Video" + i, typeof(RectTransform));
-                video.transform.SetParent(contentGO.transform, false);
+                video.transform.SetParent(list.transform, false);
 
                 LayoutElement le = video.AddComponent<LayoutElement>();
-                le.preferredHeight = 200;
+                le.preferredHeight = 320;
 
-                HorizontalLayoutGroup row = video.AddComponent<HorizontalLayoutGroup>();
-                row.spacing = 20;
-                row.childAlignment = TextAnchor.MiddleLeft;
-                row.childForceExpandWidth = false;
-                row.childForceExpandHeight = false;
+                VerticalLayoutGroup v = video.AddComponent<VerticalLayoutGroup>();
+                v.spacing = 10;
 
-                // PREVIEW
                 Image preview = new GameObject("Preview").AddComponent<Image>();
                 preview.transform.SetParent(video.transform, false);
                 preview.sprite = rutubePreviews[i];
                 preview.preserveAspect = true;
 
-                RectTransform pr = preview.GetComponent<RectTransform>();
-                pr.sizeDelta = new Vector2(320, 180);
+                LayoutElement ple = preview.gameObject.AddComponent<LayoutElement>();
+                ple.preferredHeight = 240;
 
-                // TITLE
                 TMP_Text title = new GameObject("Title").AddComponent<TextMeshProUGUI>();
                 title.transform.SetParent(video.transform, false);
                 title.text = rutubeTitles[i];
-                title.fontSize = 28;
-                title.alignment = TextAlignmentOptions.Left;
-
-                RectTransform tr = title.GetComponent<RectTransform>();
-                tr.sizeDelta = new Vector2(500, 180);
+                title.fontSize = 32;
+                title.alignment = TextAlignmentOptions.Center;
             }
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRT);
-            scroll.verticalNormalizedPosition = 1f;
         });
 
         CreateTab("Instagram", () =>
@@ -517,6 +511,7 @@ public class ComputerOSManager : MonoBehaviour
             r.anchorMax = Vector2.one;
             r.offsetMin = r.offsetMax = Vector2.zero;
         });
+        Clear();
     }
 
     void OpenGallery()
@@ -609,7 +604,7 @@ public class ComputerOSManager : MonoBehaviour
         TMP_Text t = new GameObject("Text").AddComponent<TextMeshProUGUI>();
         t.transform.SetParent(w.transform, false);
 
-        t.text = "Разблокировано: " + ability;
+        t.text = "Разблокировано: Ускорение";
 
         t.fontSize = 28;
         t.color = Color.yellow;
@@ -645,16 +640,12 @@ public class ComputerOSManager : MonoBehaviour
 
     public void UnlockAbilityByTag(string tag)
     {
-        GameObject ability = GameObject.FindGameObjectWithTag(tag);
+        var pug = player.GetComponent<Управлениемопсом>();
 
-        if (ability != null)
+        if (tag == "SprintBlock")
         {
-            ability.SetActive(true);
-            ShowAbilityUnlock(tag);
-        }
-        else
-        {
-            Debug.Log("Ability with tag not found: " + tag);
+            pug.UnlockSprint();
+            ShowAbilityUnlock("Sprint");
         }
     }
 }

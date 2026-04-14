@@ -781,4 +781,8 @@ public class Управлениемопсом : MonoBehaviour
         if (sleepinessContainerRect != null)
             sleepinessContainerRect.gameObject.SetActive(active);
     }
+    public void UnlockSprint()
+    {
+        canSprint = true;
+    }
 }

@@ -284,8 +284,6 @@ public class Minesweeper : MonoBehaviour
             running = false;
             gameOver = true;
 
-            if (os != null)
-                os.ShowAbilityUnlock("Mine Detector");
             os.UnlockAbilityByTag("SprintBlock");
         }
     }
