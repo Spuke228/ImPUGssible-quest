@@ -496,9 +496,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a6c8102cacb1664c91f4abd5220d9e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISound
-  clickSound: {fileID: 8300000, guid: 1baa92317c1e2b745ba6a43050fe0e6b, type: 3}
-  sceneMusic: {fileID: 8300000, guid: 9c28181d94c610e4f94f8463d4c4301b, type: 3}
+  clickSound: {fileID: 0}
+  menuMusic: {fileID: 8300000, guid: 9c28181d94c610e4f94f8463d4c4301b, type: 3}
+  gameMusic: {fileID: 8300000, guid: c25cdfa35e88612429436f18f93cfd8f, type: 3}
   musicFadeDuration: 1
+  menuSceneName: MainMenu
+  gameSceneName: Game
 --- !u!4 &271639031
 Transform:
   m_ObjectHideFlags: 0

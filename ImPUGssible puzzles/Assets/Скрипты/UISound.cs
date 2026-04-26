@@ -9,16 +9,37 @@ public class UISoundManager : MonoBehaviour
     [Header("UI звуки")]
     public AudioClip clickSound;
 
-    [Header("Музыка сцены")]
-    public AudioClip sceneMusic;
+    [Header("Музыка")]
+    public AudioClip menuMusic;
+    public AudioClip gameMusic;
+
     public float musicFadeDuration = 1f;
+
+    [Header("Scene Names")]
+    public string menuSceneName = "MainMenu";
+    public string gameSceneName = "Game"; // твоя игровая сцена
 
     private AudioSource uiAudioSource;
     private AudioSource musicAudioSource;
+    private bool isMuted = false;
+    private float currentVolume = 0.2f;
+    private float targetVolume = 0.2f;
 
-    private void Awake()
+    public static UISoundManager Instance;
+
+    void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
         uiAudioSource = gameObject.AddComponent<AudioSource>();
+        uiAudioSource.loop = false;
         uiAudioSource.playOnAwake = false;
 
         musicAudioSource = gameObject.AddComponent<AudioSource>();
@@ -26,15 +47,66 @@ public class UISoundManager : MonoBehaviour
         musicAudioSource.playOnAwake = false;
     }
 
-    private void Start()
+    public void SetMuted(bool muted)
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        StartCoroutine(SwitchMusic(sceneMusic));
+        isMuted = muted;
+
+        if (musicAudioSource != null)
+            musicAudioSource.mute = muted;
+
+        if (uiAudioSource != null)
+            uiAudioSource.mute = muted;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    public bool IsMuted() => isMuted;
+
+    public float GetCurrentVolume()
     {
-        StartCoroutine(SwitchMusic(sceneMusic));
+        return currentVolume;
+    }
+
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void Start()
+    {
+        StartCoroutine(InitMusic());
+    }
+
+    IEnumerator InitMusic()
+    {
+        while (SettingsManager.Instance == null)
+            yield return null;
+
+        currentVolume = SettingsManager.Instance.GetMusicVolume();
+
+        HandleSceneMusic(SceneManager.GetActiveScene().name);
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        HandleSceneMusic(scene.name);
+    }
+
+    void HandleSceneMusic(string sceneName)
+    {
+        // МЕНЮ И НАСТРОЙКИ (та же музыка)
+        if (sceneName == menuSceneName || sceneName == "Settings")
+        {
+            StartCoroutine(SwitchMusic(menuMusic));
+        }
+        // ИГРА
+        else if (sceneName == gameSceneName)
+        {
+            StartCoroutine(SwitchMusic(gameMusic));
+        }
     }
 
     // ---------------- UI ----------------
@@ -49,7 +121,7 @@ public class UISoundManager : MonoBehaviour
     {
         if (slider == null) return;
 
-        EventTrigger trigger = slider.gameObject.GetComponent<EventTrigger>();
+        EventTrigger trigger = slider.GetComponent<EventTrigger>();
         if (trigger == null)
             trigger = slider.gameObject.AddComponent<EventTrigger>();
 
@@ -69,44 +141,63 @@ public class UISoundManager : MonoBehaviour
         if (newMusic == null)
             yield break;
 
+        if (musicAudioSource.clip == newMusic && musicAudioSource.isPlaying)
+            yield break;
+
+        float startVolume = musicAudioSource.volume;
+
+        // FADE OUT
         if (musicAudioSource.isPlaying)
         {
-            float startVolume = musicAudioSource.volume;
             float t = 0f;
 
             while (t < musicFadeDuration)
             {
                 t += Time.unscaledDeltaTime;
-                musicAudioSource.volume = Mathf.Lerp(startVolume, 0f, t / musicFadeDuration);
+
+                float v = Mathf.Lerp(startVolume, 0f, t / musicFadeDuration);
+                musicAudioSource.volume = isMuted ? 0f : v;
+
                 yield return null;
             }
-
-            musicAudioSource.Stop();
         }
 
         musicAudioSource.clip = newMusic;
-        musicAudioSource.volume = 0f;
         musicAudioSource.Play();
 
+        // FADE IN (ВАЖНО: используем targetVolume, не currentVolume напрямую)
         float t2 = 0f;
 
         while (t2 < musicFadeDuration)
         {
             t2 += Time.unscaledDeltaTime;
-            musicAudioSource.volume = Mathf.Lerp(0f, 0.2f, t2 / musicFadeDuration);
+
+            float v = Mathf.Lerp(0f, targetVolume, t2 / musicFadeDuration);
+            musicAudioSource.volume = isMuted ? 0f : v;
+
             yield return null;
         }
+
+        musicAudioSource.volume = isMuted ? 0f : targetVolume;
     }
 
     public void SetMusicVolume(float volume)
     {
-        if (musicAudioSource != null)
-            musicAudioSource.volume = volume;
+        targetVolume = volume;
+        currentVolume = volume;
+
+        if (isMuted || musicAudioSource == null)
+            return;
+
+        musicAudioSource.volume = volume;
     }
 
     public void SetMusicVolumeSlider(float volume)
     {
-        if (musicAudioSource != null)
-            musicAudioSource.volume = volume;
+        SetMusicVolume(volume);
+    }
+    public void SetVolume(float volume)
+    {
+        SetMusicVolume(volume);
     }
 }

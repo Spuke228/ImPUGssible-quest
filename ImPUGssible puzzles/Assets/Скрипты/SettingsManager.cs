@@ -22,6 +22,34 @@ public class SettingsManager : MonoBehaviour
     // Event UI can subscribe to in order to refresh widgets when settings change or scene loads
     public event Action OnSettingsUpdated;
 
+    float musicVolume = 0.2f;
+
+    public void SetMusicVolume(float value)
+    {
+        musicVolume = Mathf.Clamp01(value);
+
+        UISoundManager sm = FindObjectOfType<UISoundManager>();
+        if (sm != null)
+            sm.SetMusicVolume(musicVolume);
+    }
+
+    public float GetMusicVolume() => musicVolume;
+
+    bool isMuted = false;
+
+    public void SetMuted(bool muted)
+    {
+        isMuted = muted;
+
+        UISoundManager sm = FindObjectOfType<UISoundManager>();
+        if (sm != null)
+            sm.SetMuted(isMuted);
+
+        OnSettingsUpdated?.Invoke();
+    }
+
+    public bool IsMuted() => isMuted;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

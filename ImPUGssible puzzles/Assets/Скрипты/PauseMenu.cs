@@ -40,6 +40,10 @@ public class PauseMenu : MonoBehaviour
 
     void Start()
     {
+        if (soundManager != null && volumeSlider != null)
+        {
+            volumeSlider.value = soundManager.GetCurrentVolume();
+        }
         pausePanel.SetActive(false);
         settingsPanel.SetActive(false);
 
@@ -85,6 +89,12 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        if (soundManager == null)
+            soundManager = FindObjectOfType<UISoundManager>();
+    }
+
     void PauseGame()
     {
         isPaused = true;
@@ -92,7 +102,7 @@ public class PauseMenu : MonoBehaviour
 
         // музыка на паузе = 0
         if (soundManager != null)
-            soundManager.SetMusicVolumeSlider(0f);
+            soundManager.SetMuted(true);
 
         // создаём VideoPlayer только при паузе
         if (videoPlayer == null && videoBackground != null && backgroundVideo != null)
@@ -135,9 +145,11 @@ public class PauseMenu : MonoBehaviour
         pausePanel.SetActive(false);
         settingsPanel.SetActive(false);
 
-        // возвращаем громкость основной музыки
-        if (soundManager != null && volumeSlider != null)
-            soundManager.SetMusicVolumeSlider(volumeSlider.value);
+        if (soundManager != null)
+        {
+            soundManager.SetMuted(false);
+            UISoundManager.Instance.SetMusicVolume(volumeSlider.value);
+        }
 
         if (videoPlayer != null)
         {
@@ -156,6 +168,10 @@ public class PauseMenu : MonoBehaviour
     {
         pausePanel.SetActive(false);
         settingsPanel.SetActive(true);
+        if (soundManager != null && volumeSlider != null)
+        {
+            volumeSlider.value = soundManager.GetCurrentVolume();
+        }
     }
 
     void CloseSettings()
@@ -220,7 +236,7 @@ public class PauseMenu : MonoBehaviour
     void OnVolumeSliderChanged(float value)
     {
         if (soundManager != null)
-            soundManager.SetMusicVolumeSlider(value);
+            soundManager.SetVolume(value);
     }
 
     void OnSensivitySliderChanged(float value)

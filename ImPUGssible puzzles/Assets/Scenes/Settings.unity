@@ -583,8 +583,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282004785
-  m_fontColor: {r: 0.19215688, g: 0.20784315, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -846,8 +846,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282136115
-  m_fontColor: {r: 0.20000002, g: 0.21176472, b: 0.23529413, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1102,8 +1102,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282005042
-  m_fontColor: {r: 0.19607845, g: 0.21176472, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.83921576, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1255,7 +1255,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1291322199}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: UISound, Assembly-CSharp
         m_MethodName: PlayClickSound
         m_Mode: 1
@@ -1517,7 +1517,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!224 &443513106
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2025,8 +2025,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282136115
-  m_fontColor: {r: 0.20000002, g: 0.21176472, b: 0.23529413, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2161,8 +2161,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282004785
-  m_fontColor: {r: 0.19215688, g: 0.20784315, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2779,7 +2779,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VolumeControl
   volumeSlider: {fileID: 998644707}
-  muteToggle: {fileID: 0}
 --- !u!1 &1059478023
 GameObject:
   m_ObjectHideFlags: 0
@@ -3677,53 +3676,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1231630742}
   m_CullTransparentMesh: 1
---- !u!1 &1291322198
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1291322200}
-  - component: {fileID: 1291322199}
-  m_Layer: 0
-  m_Name: Uisound
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1291322199
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1291322198}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a6c8102cacb1664c91f4abd5220d9e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UISound
-  clickSound: {fileID: 8300000, guid: 1baa92317c1e2b745ba6a43050fe0e6b, type: 3}
-  sceneMusic: {fileID: 8300000, guid: 9c28181d94c610e4f94f8463d4c4301b, type: 3}
-  musicFadeDuration: 1
---- !u!4 &1291322200
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1291322198}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 825.3792, y: 442.69904, z: 708.87164}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1402214503
 GameObject:
   m_ObjectHideFlags: 0
@@ -3790,8 +3742,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282005042
-  m_fontColor: {r: 0.19607845, g: 0.21176472, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4142,8 +4094,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282004785
-  m_fontColor: {r: 0.19215688, g: 0.20784315, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4414,8 +4366,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282005042
-  m_fontColor: {r: 0.19607845, g: 0.21176472, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4514,7 +4466,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VolumeControl
   volumeSlider: {fileID: 998644707}
-  muteToggle: {fileID: 443513105}
 --- !u!4 &1640342818
 Transform:
   m_ObjectHideFlags: 0
@@ -4596,8 +4547,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282005042
-  m_fontColor: {r: 0.19607845, g: 0.21176472, b: 0.227451, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.83921576, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4909,6 +4860,8 @@ MonoBehaviour:
   fullscreenToggle: {fileID: 1146412645}
   brightnessSlider: {fileID: 597932074}
   dogToggle: {fileID: 1155102610}
+  volumeSlider: {fileID: 998644707}
+  muteToggle: {fileID: 443513105}
 --- !u!4 &1807127309
 Transform:
   m_ObjectHideFlags: 0
@@ -4990,8 +4943,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282136115
-  m_fontColor: {r: 0.20000002, g: 0.21176472, b: 0.23529413, a: 1}
+    rgba: 4278224086
+  m_fontColor: {r: 0.8392157, g: 0.5176471, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5550,7 +5503,6 @@ SceneRoots:
   - {fileID: 890660035}
   - {fileID: 1538935959}
   - {fileID: 478732668}
-  - {fileID: 1291322200}
   - {fileID: 374513493}
   - {fileID: 1640342818}
   - {fileID: 1807127309}

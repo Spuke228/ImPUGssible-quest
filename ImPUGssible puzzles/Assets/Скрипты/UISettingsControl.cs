@@ -6,6 +6,8 @@ public class UISettingsControl : MonoBehaviour
     [SerializeField] private Toggle fullscreenToggle;
     [SerializeField] private Slider brightnessSlider;
     [SerializeField] private Toggle dogToggle;
+    [SerializeField] private Slider volumeSlider;
+    [SerializeField] private Toggle muteToggle;
 
     private void OnEnable()
     {
@@ -28,6 +30,12 @@ public class UISettingsControl : MonoBehaviour
 
     private void AttachUIEvents()
     {
+        if (volumeSlider != null)
+        {
+            volumeSlider.onValueChanged.RemoveAllListeners();
+            volumeSlider.value = SettingsManager.Instance.GetMusicVolume();
+            volumeSlider.onValueChanged.AddListener(v => SettingsManager.Instance.SetMusicVolume(v));
+        }
         if (SettingsManager.Instance == null) return;
 
         if (fullscreenToggle != null)
@@ -50,10 +58,20 @@ public class UISettingsControl : MonoBehaviour
             dogToggle.isOn = SettingsManager.Instance.IsDogShown();
             dogToggle.onValueChanged.AddListener(v => SettingsManager.Instance.SetShowDog(v));
         }
+        if (muteToggle != null)
+        {
+            muteToggle.onValueChanged.RemoveAllListeners();
+            muteToggle.isOn = SettingsManager.Instance.IsMuted();
+            muteToggle.onValueChanged.AddListener(v => SettingsManager.Instance.SetMuted(v));
+        }
     }
 
     private void RefreshUI()
     {
+        if (muteToggle != null)
+            muteToggle.isOn = SettingsManager.Instance.IsMuted();
+        if (volumeSlider != null)
+            volumeSlider.value = SettingsManager.Instance.GetMusicVolume();
         if (SettingsManager.Instance == null) return;
 
         if (fullscreenToggle != null)
